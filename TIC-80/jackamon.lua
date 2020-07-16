@@ -2,7 +2,7 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=true
+DEBUG=false
 
 scene=nil
 
@@ -23,6 +23,74 @@ function sc_title()
 end
 
 rooms={}
+roomn=nil
+room=nil
+
+player={spr=260} -- *** change later
+
+function start_game() 
+ scene=sc_explore
+ if not DEBUG then
+	  enter_room(2,1)
+ else
+	  enter_room(2,1)
+	end
+end
+
+function enter_room(rn,en)
+ roomn=rn
+ room=rooms[rn]
+	ent=room.ent[en]
+	player.x=ent.px-room.mx
+	player.y=ent.py-room.my
+end
+
+function sc_explore()
+	cls(0)
+	map(room.mx,room.my)
+	if DEBUG then print("ROOM #"..roomn) end
+	p=player
+	spr(p.spr,p.x*8,p.y*8,0)
+	
+	if room.obj then
+	 for oi,o in ipairs(room.obj) do
+		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
+			 o.a()
+			end
+  end
+	end
+	
+	function move(dx,dy)
+	 nx=p.x+dx
+		ny=p.y+dy
+		mnx=room.mx+nx
+		mny=room.my+ny
+		if room.ext then
+		for ei,e in ipairs(room.ext) do
+		 if mnx==e.x and mny==e.y then
+			 enter_room(e.r,e.e)
+				return
+			end
+		end
+		end
+		if not fget(mget(mnx,mny),0) then
+		 p.x=nx
+			p.y=ny
+			return
+		end
+		--- XXX add a bump sound
+	end
+	if btnp(0,1,10) then move(0,-1) end
+	if btnp(1,1,10) then move(0,1) end
+	if btnp(2,1,10) then move(-1,0) end
+	if btnp(3,1,10) then move(1,0) end
+end
+
+function act_msg(m)
+ return function()
+  print(m,0,(31-room.my)*8)
+	end
+end
 
 rooms[1]={
  mx=0,
@@ -72,6 +140,13 @@ rooms[1]={
 rooms[2]={ 
   mx=30,
 	 my=17,
+		obj={
+		 [1]={
+			 x=40,
+				y=24,
+				a=act_msg("15 Edition game station. Given to you by DAD.")
+			}
+		},
 		ent={
 		 [1]={
 		  px=44,
@@ -706,59 +781,6 @@ rooms[24]={
 			} }
 }
 
-roomn=nil
-room=nil
-
-player={spr=260} -- *** change later
-
-function start_game() 
- scene=sc_explore
---	enter_room(2,1)
- enter_room(17,1)
-end
-
-function enter_room(rn,en)
- roomn=rn
- room=rooms[rn]
-	ent=room.ent[en]
-	player.x=ent.px-room.mx
-	player.y=ent.py-room.my
-end
-
-function sc_explore()
-	cls(0)
-	map(room.mx,room.my)
-	if DEBUG then print("ROOM #"..roomn) end
-	p=player
-	spr(p.spr,p.x*8,p.y*8,0)
-	
-	function move(dx,dy)
-	 nx=p.x+dx
-		ny=p.y+dy
-		mnx=room.mx+nx
-		mny=room.my+ny
-		if room.ext then
-		for ei,e in ipairs(room.ext) do
-		 if mnx==e.x and mny==e.y then
-			 enter_room(e.r,e.e)
-				return
-			end
-		end
-		end
-		if not fget(mget(mnx,mny),0) then
-		 p.x=nx
-			p.y=ny
-			return
-		end
-		--- XXX add a bump sound
-	end
-	if btnp(0,1,10) then move(0,-1) end
-	if btnp(1,1,10) then move(0,1) end
-	if btnp(2,1,10) then move(-1,0) end
-	if btnp(3,1,10) then move(1,0) end
-	
-end
-
 function TODO()
 	-- Define all Mons
 	 -- choose all types
@@ -767,9 +789,11 @@ function TODO()
 	-- Program engine 
 end
 
-start_title()
---start_game()
-
+if not DEBUG then
+  start_title()
+else
+  start_game()
+end
 -- <TILES>
 -- 001:bbbbbbbbbbb5bbbbb55bbbbbbbbbbbbbbbbb5bbbb5bbb55bbb5bbbbbbbbbbbbb
 -- 002:bbfbbbbbbfcfbb5bb5f5bbbbbb5bbbdbbbbbbdedb8bbbbdbbb5bbb5bbbbbbbbb
