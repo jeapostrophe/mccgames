@@ -11,8 +11,8 @@ BHOLD=30 BPERIOD=6
 SOUTH=0 WEST=1 NORTH=2 EAST=3
 DXY={[0]={dx=0,dy=1}
     ,{dx=-1,dy=0}
-				,{dx=0,dy=-1}
-				,{dx=1,dy=0}}
+    ,{dx=0,dy=-1}
+    ,{dx=1,dy=0}}
 
 MAP_W=240 MAP_H=136
 MDW=8 MDHW=MDW/2
@@ -28,100 +28,100 @@ function DF(f,df)
  return (f+df)%4
 end
 
--- State	
+-- State 
 x=1
 y=0
 f=SOUTH
 
 function TIC()
  -- draw
-	cls(0)
+ cls(0)
 
-	function draw_view(dun_p, front_p, nextf_p, left_p, right_p)
-	 local draw_x=0 draw_y=0 draw_s=4
-		local switch_p=(dun_p and nextf_p) or (not dun_p and not nextf_p)
-	 function one_spr(sn)
-		 spr(sn,draw_x,draw_y,0,draw_s,0,0,4,4)
-		end
-	 function two_spr(tn,bn)
-	 	spr(tn,draw_x,draw_y,0,draw_s,0,0,4,2)
-	 	spr(bn,draw_x,draw_y+draw_s*8*2,0,draw_s,0,0,4,2)
-		end
-	 function three_spr(tln,trn,bn)
-	 	spr(tln,draw_x,draw_y,0,draw_s,0,0,2,2)
-	 	spr(trn,draw_x+draw_s*8*2,draw_y,0,draw_s,0,0,2,2)
-	 	spr(bn,draw_x,draw_y+draw_s*8*2,0,draw_s,0,0,4,2)
-		end
-		
-	 if dun_p then
-			if switch_p then one_spr(0128)
-			elseif front_p and left_p and right_p then
-			 three_spr(0072,0072,0040)
-			elseif front_p and left_p and not right_p then
-			 one_spr(0072)
-			elseif front_p and not left_p and right_p then
-			 one_spr(0076)
-			elseif front_p and not left_p and not right_p then
-			 one_spr(0064)
-			elseif not front_p and left_p and right_p then
-			 one_spr(0008)
-			elseif not front_p and left_p and not right_p then
-			 one_spr(0012)
-			elseif not front_p and not left_p and right_p then
-			 one_spr(0068)
-			elseif not front_p and not left_p and not right_p then
-			 one_spr(0004)
-			end
-		else 
-			if switch_p then two_spr(0132, 0164)
-			elseif front_p and left_p and right_p then
-			 three_spr(0216,0216,0164)
-			elseif front_p and left_p and not right_p then
-			 one_spr(0200)
-			elseif front_p and not left_p and right_p then
-			 one_spr(0204)
-			elseif front_p and not left_p and not right_p then
-			 two_spr(0192,0164)
-			elseif not front_p and left_p and right_p then
-			 one_spr(0136)
-			elseif not front_p and left_p and not right_p then
-			 one_spr(0140)
-			elseif not front_p and not left_p and right_p then
-			 one_spr(0196)
-			elseif not front_p and not left_p and not right_p then
-			 two_spr(0224,0164)
-			end
-		end
-	end
-	draw_view(not fget(mget(x,y),1)
-	         ,fget(mget(FDX(f,1),FDY(f,1)),0)
-										,fget(mget(FDX(f,1),FDY(f,1)),1)
-										,fget(mget(FDX(DF(f,-1),1),FDY(DF(f,-1),1)),0)
-										,fget(mget(FDX(DF(f,1),1),FDY(DF(f,1),1)),0))
+ function draw_view(dun_p, front_p, nextf_p, left_p, right_p)
+  local draw_x=0 draw_y=0 draw_s=4
+  local switch_p=(dun_p and nextf_p) or (not dun_p and not nextf_p)
+  function one_spr(sn)
+   spr(sn,draw_x,draw_y,0,draw_s,0,0,4,4)
+  end
+  function two_spr(tn,bn)
+   spr(tn,draw_x,draw_y,0,draw_s,0,0,4,2)
+   spr(bn,draw_x,draw_y+draw_s*8*2,0,draw_s,0,0,4,2)
+  end
+  function three_spr(tln,trn,bn)
+   spr(tln,draw_x,draw_y,0,draw_s,0,0,2,2)
+   spr(trn,draw_x+draw_s*8*2,draw_y,0,draw_s,0,0,2,2)
+   spr(bn,draw_x,draw_y+draw_s*8*2,0,draw_s,0,0,4,2)
+  end
+  
+  if dun_p then
+   if switch_p then one_spr(0128)
+   elseif front_p and left_p and right_p then
+    three_spr(0072,0072,0040)
+   elseif front_p and left_p and not right_p then
+    one_spr(0072)
+   elseif front_p and not left_p and right_p then
+    one_spr(0076)
+   elseif front_p and not left_p and not right_p then
+    one_spr(0064)
+   elseif not front_p and left_p and right_p then
+    one_spr(0008)
+   elseif not front_p and left_p and not right_p then
+    one_spr(0012)
+   elseif not front_p and not left_p and right_p then
+    one_spr(0068)
+   elseif not front_p and not left_p and not right_p then
+    one_spr(0004)
+   end
+  else 
+   if switch_p then two_spr(0132, 0164)
+   elseif front_p and left_p and right_p then
+    three_spr(0216,0216,0164)
+   elseif front_p and left_p and not right_p then
+    one_spr(0200)
+   elseif front_p and not left_p and right_p then
+    one_spr(0204)
+   elseif front_p and not left_p and not right_p then
+    two_spr(0192,0164)
+   elseif not front_p and left_p and right_p then
+    one_spr(0136)
+   elseif not front_p and left_p and not right_p then
+    one_spr(0140)
+   elseif not front_p and not left_p and right_p then
+    one_spr(0196)
+   elseif not front_p and not left_p and not right_p then
+    two_spr(0224,0164)
+   end
+  end
+ end
+ draw_view(not fget(mget(x,y),1)
+          ,fget(mget(FDX(f,1),FDY(f,1)),0)
+          ,fget(mget(FDX(f,1),FDY(f,1)),1)
+          ,fget(mget(FDX(DF(f,-1),1),FDY(DF(f,-1),1)),0)
+          ,fget(mget(FDX(DF(f,1),1),FDY(DF(f,1),1)),0))
 
-	local map_x=8*4*4 map_y=0
-	map(x-MDHW, y-MDHH, MDW, MDH, map_x, map_y, 0, 1)
-	spr(0499,map_x+8*MDHW,map_y+8*MDHH,0,1,0,f)
-	rectb(map_x,map_y,MDW*8,MDH*8,15)
+ local map_x=8*4*4 map_y=0
+ map(x-MDHW, y-MDHH, MDW, MDH, map_x, map_y, 0, 1)
+ spr(0499,map_x+8*MDHW,map_y+8*MDHH,0,1,0,f)
+ rectb(map_x,map_y,MDW*8,MDH*8,15)
 
  if DBG_m then
-	 print(DBG_m,0,4*4*8)
+  print(DBG_m,0,4*4*8)
  end 
-	
-	-- react
-	if _btnp(BL) then f=DF(f,-1) end
-	if _btnp(BR) then f=DF(f,1) end
-	
-	local m=0
-	if _btnp(BU) then m=1 end 
-	if _btnp(BD) then m=-1 end
-	if not (m == 0) then
-		local nx=FDX(f,m)
-		local ny=FDY(f,m)
-		if fget(mget(nx, ny),0) then
-		 x=nx y=ny
-		end
-	end
+ 
+ -- react
+ if _btnp(BL) then f=DF(f,-1) end
+ if _btnp(BR) then f=DF(f,1) end
+ 
+ local m=0
+ if _btnp(BU) then m=1 end 
+ if _btnp(BD) then m=-1 end
+ if not (m == 0) then
+  local nx=FDX(f,m)
+  local ny=FDY(f,m)
+  if fget(mget(nx, ny),0) then
+   x=nx y=ny
+  end
+ end
 end
 
 DBG_m=nil
