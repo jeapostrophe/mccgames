@@ -1,6 +1,6 @@
--- title:  delve
--- author: get bonus games
--- desc:   save the crystals!
+-- title:  DELVE
+-- author: Get Bonus Games in collaboration with Balistic Ghoul Games
+-- desc:   Save the crystals!
 -- script: lua
 -- saveid: gb.delve
 
