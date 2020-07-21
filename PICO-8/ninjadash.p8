@@ -3,7 +3,7 @@ version 18
 __lua__
 
 --ninjadash
---by balistic goul studios
+--by balistic ghoul studios
 --tutorial by nerdy teachers
 --version: 1.5
 

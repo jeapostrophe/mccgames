@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -- knightcrawler 2
--- by balistic goul studios
+-- by balistic ghoul studios
 -- tutorial by lazy devz acadamy
 
 function _init()

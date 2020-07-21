@@ -1,6 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+
+--happy b-day thomas! 
+--i hope you enjoy the game!
+
+-- jack
+
 function _init()
  t=0
  shake=0
