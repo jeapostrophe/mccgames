@@ -1,6 +1,6 @@
 -- title:  Magnaman
 -- author: Balistic Ghoul Studios
--- desc:   Add on from MEGAMAN Demo by: LuaNX
+-- desc:   Add on from: MEGAMAN Demo by LuaNX
 -- script: lua
 
 z=0
