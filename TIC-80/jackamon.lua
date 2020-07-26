@@ -10,6 +10,22 @@ function TIC()
  scene()
 end
 
+function draw_box(mx,my,tw,th)
+ rect(mx+4,my+4,tw*8-4,th*8-4,0)
+	for i=1,tw-1 do
+	 spr(269,mx+8*i,my,-1)
+		spr(301,mx+8*i,my+8*th,-1)
+	end
+	for i=1,th-1 do
+	 spr(284,mx,my+8*i,-1)
+		spr(286,mx+8*tw,my+8*i,-1)
+	end
+	spr(268,mx,my,6)
+	spr(300,mx,my+8*th,6)
+	spr(270,mx+8*tw,my,6)
+	spr(302,mx+8*tw,my+8*th,6)
+end
+
 function start_title() 
  scene=sc_title
 end
@@ -50,13 +66,17 @@ function enter_room(rn,en)
 	player.y=ent.py-room.my
 end
 
-function sc_explore()
+function draw_explore()
 	cls(0)
 	map(room.mx,room.my)
 	if DEBUG then print("ROOM #"..roomn) end
 	p=player
 	spr(p.spr,p.x*8,p.y*8,0)
-	
+end
+
+function sc_explore()
+	draw_explore()
+		
 	if room.obj then
 	 for oi,o in ipairs(room.obj) do
 		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
@@ -94,6 +114,8 @@ function sc_explore()
 	if btnp(1,1,10) then move(0,1) end
 	if btnp(2,1,10) then move(-1,0) end
 	if btnp(3,1,10) then move(1,0) end
+	
+	if btnp(4) then start_menu() end
 end
 
 function act_msg(m)
@@ -101,15 +123,8 @@ function act_msg(m)
 	 local mx=1
 		local my=15*8-1
 	 local w=(string.len(m)+1)*5+2
-		for i=1,((w-1)/8) do
-		 spr(269,mx+8*i,my,-1)
-		 spr(301,mx+8*i,my+8,-1)
-		end
-		spr(268,mx,my,6)
-		spr(300,mx,my+8,6)
-		spr(270,mx+w,my,6)
-		spr(302,mx+w,my+8,6)
-  print(m,mx+3,my+6,15)
+		draw_box(mx,my,math.ceil((w)/8),1)
+	 print(m,mx+3,my+6,15)
 	end
 end
 
@@ -861,6 +876,37 @@ rooms[23]={
 				e=3
 			} }
 }
+
+mpos=nil
+menu={{lab="ITEMS"}
+     ,{lab="MONS"}
+					,{lab="DEX"}}
+function start_menu() 
+ scene=sc_menu
+	mpos=0
+end
+function sc_menu()
+ draw_explore()
+	
+	local 
+	 mx=20*8
+		my=2*8
+		Mmax=#menu
+	
+	draw_box(mx,my,6,Mmax)
+	for i=1,#menu do 
+	 print(menu[i].lab,mx+4+8,my-2+8*i)
+	end
+	spr(285,mx-4+8,my-4+8*(1+mpos),0)
+
+ function move(dm)
+	 mpos=(mpos+dm)%Mmax
+	end
+	if btnp(0,1,10) then move(-1) end
+	if btnp(1,1,10) then move(1) end
+	
+	if btnp(4) then scene=sc_explore end
+end
 
 function TODO()
 	-- Define all Mons
