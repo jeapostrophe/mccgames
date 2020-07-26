@@ -43,14 +43,20 @@ roomn=nil
 room=nil
 exitn=nil
 
-player={spr=260} -- *** change later
+player={ spr=260  -- *** change later
+       , i_hp=0
+							, i_max=0
+							, i_swim=0
+							, i_rock=0
+							, i_file=0
+							, i_bonus=0 }
 
 function start_game() 
  scene=sc_explore
  if not DEBUG then
 	  enter_room(2,1)
  else
-	  enter_room(18,1)
+	  enter_room(13,1)
 	end
 end
 
@@ -127,6 +133,82 @@ function act_msg(m)
 	 print(m,mx+3,my+6,15)
 	end
 end
+
+mpos=nil
+function start_menu() 
+ scene=sc_menu
+	mpos=0
+end
+function sc_menu()
+ draw_explore()
+	
+	local 
+	 mx=20*8
+		my=2*8
+		Mmax=#menu
+	
+	draw_box(mx,my,6,Mmax)
+	for i=1,#menu do 
+	 print(menu[i].lab,mx+4+8,my-2+8*i)
+	end
+	spr(285,mx-4+8,my-4+8*(1+mpos),0)
+
+ function move(dm)
+	 mpos=(mpos+dm)%Mmax
+	end
+	if btnp(0,1,10) then move(-1) end
+	if btnp(1,1,10) then move(1) end
+	
+	if btnp(4) then scene=sc_explore end
+	if btnp(5) then menu[mpos+1].a() end
+end
+
+itms=
+	 { {480,"i_hp"}
+		, {481,"i_rock"} --Yep, I do "rock"... get it?
+		, {482,"i_swim"}
+		, {483,"i_max"}
+		, {484,"i_bonus"}
+		, {485,"i_file"} } 
+
+function act_itm(i)
+ return function() 
+	 player[i]=player[i]+1
+ end
+end
+
+function start_itms()
+ scene=sc_itms
+end
+function sc_itms()
+ draw_explore()
+	local p=player
+
+	local 
+	 mx=20*8
+		my=2*8
+		Mmax=#itms
+	
+	draw_box(mx,my,3,Mmax)
+	for i=1,#itms do 
+	 spr(itms[i][1],mx+8,my-4+8*i)
+		print(p[itms[i][2]],mx+8+10,my-2+8*i)
+	end
+	
+	if btnp(4) then scene=sc_menu end
+end
+
+function start_mons()
+ 
+end
+
+function start_dex()
+ 
+end
+
+menu={{lab="ITEMS",a=start_itms}
+     ,{lab="MONS",a=start_mons}
+					,{lab="DEX",a=start_dex}}
 
 rooms[1]={  
  mx=0,
@@ -516,7 +598,11 @@ rooms[13]={
 		 [1]={
 		 x=116,
 		 y=30,
-		 a=act_msg("The Beach -V")}},
+		 a=act_msg("The Beach -V")},
+			[2]={
+			 x=97,
+			 y=22,
+				a=act_itm("i_swim") }},
 		ent={
 		 [1]={
 		  px=90,
@@ -594,6 +680,10 @@ rooms[15]={
 			[3]={
 			 px=114,
 				py=76
+			},
+			[4]={
+			 px=119,
+				py=78
 			} },
 		ext={
 		 [1]={
@@ -877,36 +967,6 @@ rooms[23]={
 			} }
 }
 
-mpos=nil
-menu={{lab="ITEMS"}
-     ,{lab="MONS"}
-					,{lab="DEX"}}
-function start_menu() 
- scene=sc_menu
-	mpos=0
-end
-function sc_menu()
- draw_explore()
-	
-	local 
-	 mx=20*8
-		my=2*8
-		Mmax=#menu
-	
-	draw_box(mx,my,6,Mmax)
-	for i=1,#menu do 
-	 print(menu[i].lab,mx+4+8,my-2+8*i)
-	end
-	spr(285,mx-4+8,my-4+8*(1+mpos),0)
-
- function move(dm)
-	 mpos=(mpos+dm)%Mmax
-	end
-	if btnp(0,1,10) then move(-1) end
-	if btnp(1,1,10) then move(1) end
-	
-	if btnp(4) then scene=sc_explore end
-end
 
 function TODO()
 	-- Define all Mons
@@ -1267,6 +1327,15 @@ end
 -- 215:0000d000000d00000066600000d6d00000666000006d606000090dc00006c000
 -- 216:00d00060000d00c0009d90d00969690d96d6d609066d6600d00900000600d000
 -- 217:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
+-- 224:0000000000066000000660000666666006666660000660000006600000000000
+-- 225:70000000007000000700f0700770f00002070f70027770700022070070000007
+-- 226:00000000011011000dd1dd100dddddd00dddddd00dddddd00dddddd000000000
+-- 227:00000000000bb000000bb0000bbbbbb00bbbbbb0000bb000000bb00000000000
+-- 228:000000000000000000000000b66900206d690222666900209990000000000000
+-- 229:000000000000000000000000377a00707b7a0777777a0070aaa0000000000000
+-- 240:0000000007777770077aaa7007a70070070a70700700a770077777700aaaaaa0
+-- 241:000000000000050000005b000505b0000b5b000000b000000000000000000000
+-- 242:0000000002000200062026000062600000262000026062000600060000000000
 -- </SPRITES>
 
 -- <MAP>
