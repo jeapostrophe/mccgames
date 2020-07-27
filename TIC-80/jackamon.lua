@@ -56,7 +56,7 @@ function start_game()
  if not DEBUG then
 	  enter_room(2,1)
  else
-	  enter_room(13,1)
+	  enter_room(2,1)
 	end
 end
 
@@ -82,15 +82,7 @@ end
 
 function sc_explore()
 	draw_explore()
-		
-	if room.obj then
-	 for oi,o in ipairs(room.obj) do
-		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
-			 o.a()
-			end
-  end
-	end
-	
+				
 	function move(dx,dy)
 	 nx=p.x+dx
 		ny=p.y+dy
@@ -122,15 +114,33 @@ function sc_explore()
 	if btnp(3,1,10) then move(1,0) end
 	
 	if btnp(4) then start_menu() end
+	
+	if btnp(5) and room.obj then
+	 for oi,o in ipairs(room.obj) do
+		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
+			 scene=mk_sc_obj(o.a(room,oi))
+			end
+  end
+	end
+end
+
+function mk_sc_obj(draw_obj)
+ return function()
+  draw_explore()
+	 draw_obj()
+	 if btnp(5) then scene=sc_explore end
+ end
 end
 
 function act_msg(m)
- return function()
-	 local mx=1
-		local my=15*8-1
-	 local w=(string.len(m)+1)*5+2
-		draw_box(mx,my,math.ceil((w)/8),1)
-	 print(m,mx+3,my+6,15)
+ return function(_r,_oi)
+	 return function()
+	  local mx=1
+		 local my=15*8-1
+	  local w=(string.len(m)+1)*5+2
+		 draw_box(mx,my,math.ceil((w)/8),1)
+	  print(m,mx+3,my+6,15)
+		end
 	end
 end
 
@@ -164,16 +174,18 @@ function sc_menu()
 end
 
 itms=
-	 { {480,"i_hp"}
-		, {481,"i_rock"} --Yep, I do "rock"... get it?
-		, {482,"i_swim"}
-		, {483,"i_max"}
-		, {484,"i_bonus"}
-		, {485,"i_file"} } 
+	 { i_hp={480,"HP token"}
+		, i_rock={481,"TM Rock Break"} --Yep, I do "rock"... get it?
+		, i_swim={482,"TM Swim"}
+		, i_max={483,"Max HP token"}
+		, i_bonus={484,"Power up token"}
+		, i_file={485,"Capture File"} } 
 
 function act_itm(i)
- return function() 
+ return function(room,oi)
+	 room.obj[oi].a=act_msg("Nothing's here")
 	 player[i]=player[i]+1
+		return act_msg("You found a " .. itms[i][2] .. "!")(room,oi)
  end
 end
 
@@ -187,12 +199,19 @@ function sc_itms()
 	local 
 	 mx=20*8
 		my=2*8
-		Mmax=#itms
+		
+	--- XXX Why not #itms?
+	local Mmax=0
+	for itc,iti in pairs(itms) do
+	 Mmax=Mmax+1
+	end
 	
 	draw_box(mx,my,3,Mmax)
-	for i=1,#itms do 
-	 spr(itms[i][1],mx+8,my-4+8*i)
-		print(p[itms[i][2]],mx+8+10,my-2+8*i)
+	local i=1
+	for itc,iti in pairs(itms) do
+	 spr(iti[1],mx+8,my-4+8*i)
+		print(p[itc],mx+8+10,my-2+8*i)
+		i=i+1
 	end
 	
 	if btnp(4) then scene=sc_menu end
@@ -1328,10 +1347,10 @@ end
 -- 216:00d00060000d00c0009d90d00969690d96d6d609066d6600d00900000600d000
 -- 217:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
 -- 224:0000000000066000000660000666666006666660000660000006600000000000
--- 225:40000000004000000400f0400440f00009040f40094440400099040040000004
+-- 225:40000400004000000400f0400440f00009040f40094440400099040040000004
 -- 226:0000000000ffff0000f0f0f00fffff00011ff1100dd11dd00dddddd000000000
 -- 227:00000000000bb000000bb0000bbbbbb00bbbbbb0000bb000000bb00000000000
--- 228:0000000000066000000990000eeeeee00bbbbbb0000dd0000002200000000000
+-- 228:0000000000032000000d300009ebd320069ebd300009e0000006900000000000
 -- 229:000000000000000000000000377a00707b7a0777777a0070aaa0000000000000
 -- 240:0000000007777770077aaa7007a70070070a70700700a770077777700aaaaaa0
 -- 241:000000000000050000005b000505b0000b5b000000b000000000000000000000
