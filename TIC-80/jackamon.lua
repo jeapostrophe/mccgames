@@ -39,6 +39,8 @@ function sc_title()
 	end
 end
 
+function tablesAndStuff() end
+
 rooms={}
 roomn=nil
 room=nil
@@ -51,6 +53,7 @@ player={ spr=260  -- *** change later
 							, i_rock=0
 							, i_file=0
 							, i_bonus=0 }
+
 play_mons={}
 seen_mons={}
 
@@ -267,8 +270,7 @@ menu={{lab="ITEMS",a=start_itms}
      ,{lab="MONS",a=start_mons}
 					,{lab="DEX",a=start_dex}}
 					
-function room_tables()
-end
+function RoomTables() end
 
 rooms[1]={  
  mx=0,
