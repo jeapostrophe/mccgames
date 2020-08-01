@@ -290,6 +290,8 @@ end
 -- 051:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbbb555555555
 -- 052:ccccccccccccccccccccccccccccccccccccccccccccccc6ccccccc666666666
 -- 053:fffffffffffffffffffffffffffffffffffffffffffffffafffffffaaaaaaaaa
+-- 054:06090e0b6699eebb08010c0f8811ccff0d0a0703ddaa7733020405f022445500
+-- 055:666666660609e060060ee0606666666606000060060000600600006006000060
 -- 254:faeeefafaeeeee44e11111e4e11e11e4eeeeeeea6e1e1e6666e1e466444a4444
 -- 255:fffffffff033330ff330033ff306063ff300003ff3333333f333333ff3ffffff
 -- </TILES>
