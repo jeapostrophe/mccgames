@@ -2,8 +2,10 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=false
+DEBUG=true
 
+B_OK=5
+B_BACK=4
 
 scene=nil
 
@@ -34,7 +36,7 @@ function sc_title()
 	cls(0)
 	map(0,0)
 	print("Press X",11*8,14*8)
-	if btnp(5) then
+	if btnp(B_OK) then
 		start_game()
 	end
 end
@@ -55,15 +57,21 @@ player={ spr=260  -- *** change later
 							, i_bonus=0
 							, flp=false }
 
+mons={}
 play_mons={}
 seen_mons={}
+
+function get_mon(mn)
+ play_mons[mn]=true
+	seen_mons[mn]=true
+end
 
 function start_game() 
  scene=sc_explore
  if not DEBUG then
 	  enter_room(2,1)
  else
-	  enter_room(25,1)
+	  enter_room(4,1)
 	end
 end
 
@@ -123,9 +131,9 @@ function sc_explore()
 	if btnp(2,1,10) then move(-1,0) end
 	if btnp(3,1,10) then move(1,0) end
 	
-	if btnp(4) then start_menu() end
+	if btnp(B_BACK) then start_menu() end
 	
-	if btnp(5) and room.obj then
+	if btnp(B_OK) and room.obj then
 	 for oi,o in ipairs(room.obj) do
 		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
 			 scene=mk_sc_obj(o.a(room,oi))
@@ -137,8 +145,10 @@ end
 function mk_sc_obj(draw_obj)
  return function()
   draw_explore()
-	 draw_obj()
-	 if btnp(5) then scene=sc_explore end
+	 local obj_done = draw_obj()
+	 if btnp(B_BACK) or obj_done then 
+		 scene=sc_explore
+		end
  end
 end
 
@@ -147,18 +157,34 @@ function act_msg(m)
 	 return function()
 	  local mx=1
 		 local my=15*8-1
-	  local w=(string.len(m)+1)*5+2
+	  local w=(string.len(m)+2)*5+2
 		 draw_box(mx,my,math.ceil((w)/8),1)
 	  print(m,mx+3,my+6,15)
 		end
 	end
 end
 
+have_starter=false
+function act_starter(mn)
+ return function(r,oi)
+	 if have_starter then
+		 return act_msg("Urm, you already have a starter.")(r,oi)
+		else
+	  local m="It's a " .. mons[mn].name .. ", choose it?"
+	  local mf=act_msg(m)(r,oi)
+	  return function()
+    mf()
+				if btnp(B_OK) then
+				 have_starter=true
+					get_mon(mn)
+					return true
+				end
+		 end
+		end
+	end
+end
+
 function act_ani(m)
- --			a_s_s=367,
-	--			a_s_l=3,
-	--			a_m_s=356,
-	--			a_m_l=9,
  return function(r,oi)
 	 local mf=act_msg(m)(r,oi)
 		local o=r.obj[oi]
@@ -213,8 +239,8 @@ function sc_menu()
 	if btnp(0,1,10) then move(-1) end
 	if btnp(1,1,10) then move(1) end
 	
-	if btnp(4) then scene=sc_explore end
-	if btnp(5) then menu[mpos+1].a() end
+	if btnp(B_BACK) then scene=sc_explore end
+	if btnp(B_OK) then menu[mpos+1].a() end
 end
 
 itms=
@@ -258,7 +284,7 @@ function sc_itms()
 		i=i+1
 	end
 	
-	if btnp(4) then scene=sc_menu end
+	if btnp(B_BACK) then scene=sc_menu end
 end
 
 function start_mons()
@@ -289,7 +315,7 @@ function sc_dex()
 			      mmy=my+(i+1)*8
 			local sn=501
 			if seen_mons[mn] then
-			 sn=400+mn
+			 sn=monspr(mn)
 			end
 		 spr(sn,mmx,mmy,0)
 			if play_mons[mn] then
@@ -298,13 +324,152 @@ function sc_dex()
 		end
 	end
  	
-	if btnp(4) then scene=sc_menu end
+	if btnp(B_BACK) then scene=sc_menu end
 end
 
 menu={{lab="ITEMS",a=start_itms}
      ,{lab="MONS",a=start_mons}
 					,{lab="DEX",a=start_dex}}
-					
+
+function monspr(mn) return 400+mn end
+
+function MonTables() end
+
+e_poison=1
+e_paralize=2
+e_ink=3
+e_confuse=4
+e_burn=5
+e_bonus=6
+e_sleep=7
+e_hallucinate=8
+e_vampire=9
+
+t_water="Water"
+t_grass="Grass"
+t_fire="Fire"
+t_normal="Normal"
+t_earth="Earth"
+t_spirit="Spirit"
+t_corrupt="Corrupt"
+t_dragon="Dragon"
+t_air="Air"
+
+atk_grass={name="Razor Leaf", type=t_grass,
+           dmg=30, s=488, e=nil}
+
+atk_poison={name="Poison Spit", type=t_corrupt,
+           dmg=10, s=505, e=e_poison}
+
+atk_fire={name="Flamethrower", type=t_fire,
+           dmg=30, s=486, e=e_poison}
+											
+atk_air={name="Tornado", type=t_air,
+           dmg=30, s=493, e=nil}
+											
+atk_bubble={name="Bubble Beam", type=t_water,
+           dmg=30, s=487, e=nil}
+
+atk_bite={name="Bite", type=t_normal,
+           dmg=30, s=504, e=nil}
+										
+atk_dragon={name="Dragon Pulse", type=t_dragon,
+           dmg=50, s=510, e=e_confuse}
+											
+atk_zap={name="Thunder Bolt", type=t_air,
+           dmg=30, s=492, e=a_paralize}
+											
+atk_Cfire={name="Corrupted Flame", type=t_corrupt,
+           dmg=30, s=489, e=e_burn}
+											
+atk_Cbubble={name="Corrupted Bubble Beam", type=t_corrupt,
+           dmg=30, s=490, e=nil}
+											
+atk_punch={name="Karate Chop", type=t_earth,
+           dmg=40, s=494, e=e_confuse}
+										
+atk_rock={name="Rock Throw", type=t_earth,
+           dmg=40, s=495, e=nil}
+											
+atk_fear={name="Scary Face", type=t_normal,
+           dmg=nil, s=506, e=e_ink}
+											
+atk_cut={name="Slash", type=t_normal,
+           dmg=30, s=507, e=nil}
+											
+atk_swipe={name="Fury Swipes", type=t_normal, --This ATK can happen between 1-4 times in arow
+           dmg=50, s=508, e=nil} --Ok this one is weird, It technacly has Two diffrent ATK spries but for now I'll Just put down one
+
+atk_vamp={name="Vampire Bite", type=t_corrupt,
+           dmg=20, s=479, e=e_vamp}
+
+-----------------------------------------------------------
+------------------------MONS-------------------------------
+-----------------------------------------------------------
+
+mons[0]={name="Blobb", hp=60, types={t_grass},
+         atks={{atk_grass,1}, {atk_poison,0.5}}}
+
+mons[1]={name="Blobbo", hp=100, types={t_grass},
+         atks={{atk_grass,2}, {atk_poison,1}}}
+									
+mons[2]={name="Blord", hp=140, types={t_grass},
+         atks={{atk_grass,3}, {atk_poison,2}}}
+
+mons[3]={name="Flegg", hp=50, types={t_fire},
+         atks={{atk_fire,1}, {atk_air,1}}}
+									
+mons[4]={name="Fyrunt", hp=90, types={t_fire},
+         atks={{atk_fire,1}, {atk_bite,1}}}
+									
+mons[5]={name="Fyroar", hp=130, types={t_dragon},
+         atks={{atk_fire,1}, {atk_bite,2}}}
+
+mons[6]={name="Pirrah", hp=60, types={t_water},
+         atks={{atk_bubble,1}, {atk_bite,1}}}
+									
+mons[7]={name="Pirrachomp", hp=100, types={t_water},
+         atks={{atk_bubble,2}, {atk_bite,2}}}
+									
+mons[8]={name="Pirgnash", hp=140, types={t_water},
+         atks={{atk_bubble,3}, {atk_bite,2}}}
+									
+mons[9]={name="Bater", hp=40, types={t_corrupt},
+         atks={{atk_vamp,1}, {atk_bite,1}}}
+									
+mons[10]={name="Batger", hp=80, types={t_corrupt},
+         atks={{atk_vamp,2}, {atk_bite,2}}}
+									
+mons[11]={name="GIode", hp=60, types={t_earth},
+         atks={{atk_punch,1}, {atk_rock,1}}}
+									
+mons[12]={name="GIger", hp=100, types={t_earth},
+         atks={{atk_punch,2}, {atk_rock,2}}}
+									
+mons[13]={name="Cink", hp=40, types={t_normal},
+         atks={{atk_swipe,1}, {atk_fear,1}}}
+									
+mons[14]={name="Compi", hp=80, types={t_normal},
+         atks={{atk_swipe,2}, {atk_fear,1}}}
+									
+mons[15]={name="Coglow", hp=40, types={t_earth},
+         atks={{atk_rock,1}, {atk_zap,1}}}
+									
+mons[16]={name="Reapo", hp=60, types={t_spirit},
+         atks={{atk_cut,1}, {atk_vamp,1}}}
+									
+mons[17]={name="Reaplur", hp=100, types={t_spirit},
+         atks={{atk_cut,2}, {atk_vamp,1}}}
+									
+mons[18]={name="Potlil", hp=60, types={t_grass},
+         atks={{atk_grass,1}, {atk_bite,1}}}
+									
+mons[19]={name="Venaomp", hp=100, types={t_grass},
+         atks={{atk_poison,1}, {atk_bite,1}}}
+
+mons[24]={name="Toxobb", hp=60, types={t_corrupt},
+         atks={{atk_poison,1}}}
+
 function RoomTables() end
 
 rooms[1]={  
@@ -436,6 +601,19 @@ rooms[3]={
 rooms[4]={ 
   mx=0,
 	 my=34,
+		obj={
+		 [1]={
+			 x=13,
+				y=39,
+				a=act_starter(0)},
+			[2]={
+			 x=14,
+				y=39,
+				a=act_starter(3)},
+			[3]={
+			 x=15,
+				y=39,
+				a=act_starter(6)}},
 		ent={
 		 [1]={
 		  px=14,
@@ -1720,6 +1898,7 @@ end
 -- 138:0022220000262600002222000302203000300300000330000030030000000000
 -- 139:0002000200200026022222662e22222622200022000002220060222000222200
 -- 140:0000000000aa0a000affafa0afaffafaaffeeffa0aaaeaa0000e000000000000
+-- 143:0000000002222220266266622662266226622662266626620222222000000000
 -- 144:00000000000000000000000000000000000bb00000bf5b0000b55b0000bbbb00
 -- 145:000000000000000000000000000bb00000bf5b000bf555b00b5555b00bbbbbb0
 -- 146:000000000000000000bbbb000bf555b0bf55555bb555555bb555555bbbbbbbbb
@@ -1779,7 +1958,7 @@ end
 -- 200:0b05500006555500bbb555007b7bb500cbcbbb05cccbbbb50cccbb0555005500
 -- 201:00000000000700700033307000b3b30000303730030076700000070000000000
 -- 202:002d002202d332dd00300300233323000b2b2770023372702007667000077700
--- 203:0000000000000000000000000000000000700000069600000997070000996000
+-- 203:0000000000000000000000000000000000070000006960000099707000099600
 -- 204:00000000000000000666600006cec60067e00e606600c607000e6666000cece6
 -- 205:0076660007d67660066ccc76eec00c660000c760e00c66660ec7667c076cccc0
 -- 206:0000707000077770000f7f700007777a0000770a0a0077700a007700a0a77770
@@ -1794,6 +1973,7 @@ end
 -- 215:0000d000000d00000066600000d6d00000666000006d606000090dc00006c000
 -- 216:00d00060000d00c0009d90d00969690d96d6d609066d6600d00900000600d000
 -- 217:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
+-- 223:000000002000000262000026662222660612216000277200002f220000000000
 -- 224:0000000000088000000860000666866006626660000620000002200000000000
 -- 225:70000070007070000700f0700770f00002070f70027770700022070000000000
 -- 226:0000000000ffff0000f0f0f00fffff00011ff1100dd11dd00dddddd000000000
@@ -1801,12 +1981,11 @@ end
 -- 228:0000000000032000000d300009ebd320069ebd300009e0000006900000000000
 -- 229:000000000000000000000000377a00707b7a0777777a0070aaa0000000000000
 -- 230:000060000066660000696600009999000099e90000eeee0000efee0000ffff00
--- 231:00000000000ff00000f00f000f0a00f00f0000f000f00f00000ff00000000000
+-- 231:00000000000ff00000f00f000f0a00d00f0000d000d00d00000dd00000000000
 -- 232:0000b0000bb005b005b00bb0b00000000000000b0bb00b500b500bb0000b0000
 -- 233:000020000022220000232200003333000033830000888800008f880000ffff00
 -- 234:0000000000088000008008000802008008000080008008000008800000000000
--- 235:0000a0000aa007a007a00aa0a00000000000000a0aa00a700a700aa0000a0000
--- 236:00e0e0e00e0e0e0e000000000ee0ee0eee0ee0ee000000000e0e0e0e00e0e0e0
+-- 236:00feef0000feff0000ffef0000feef0000feff0000ffef0000feef0000feff00
 -- 237:000000000ffffff000aaaa000ffffff0000aa00000ffff00000aa00000000ff0
 -- 238:0000000000000000090909000909090000000000090999000990990000000000
 -- 239:0000000000040000004494000449944044944944999444994449994494449444
@@ -1817,14 +1996,13 @@ end
 -- 244:000000000009000000999000099999000ee9ee000009000000090000000e0000
 -- 245:0000000000aaaa000007aa70000aa77000007700000aa0000000770000000000
 -- 246:b7a0000077a00000aa0000000000000000000000000000000000000000000000
--- 247:0000000000070000007767000776977077e77677696777e9777696779777e777
 -- 248:0000000020000020222222202020202020000020020202000222220000000000
 -- 249:0200002020200002023333000032320000333300003030200000320200300020
 -- 250:070000707670076776e77e67077777707a7777f77fafafa707fafa7000777700
 -- 251:0600000069600000069600000669600006069600000669600600069600060660
 -- 252:000000000e00e00000e00e00000e00e00e00e00e00e00e00000e00000000e000
 -- 253:00000000000e00e000e00e000e00e000e00e00e000e00e000000e000000e0000
--- 254:000000000999999699eee9609eeeee9699eee960099999960000000000000000
+-- 254:0000000000050000001000000323215536335332235135150000000000000000
 -- 255:fffffffff077770ff770077ff706067ff700007ff7777777f777777ff7ffffff
 -- </SPRITES>
 
