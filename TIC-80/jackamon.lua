@@ -7,6 +7,8 @@ DEBUG=true
 B_OK=5
 B_BACK=4
 
+ACTIVE_MONS=4
+
 scene=nil
 
 function TIC()
@@ -37,7 +39,7 @@ function sc_title()
 	map(0,0)
 	print("Press X",11*8,14*8)
 	if btnp(B_OK) then
-		start_game()
+		start_explore()
 	end
 end
 
@@ -60,13 +62,22 @@ player={ spr=260  -- *** change later
 mons={}
 play_mons={}
 seen_mons={}
+active_mons={}
+
+function healthy_mons()
+ for mn,mi in pairs(active_mons) do
+	 return true
+	end
+	return false
+end
 
 function get_mon(mn)
- play_mons[mn]=true
+ play_mons[mn]= { hp=mons[mn].hp
+	               , xp=mons[mn].xp }
 	seen_mons[mn]=true
 end
 
-function start_game() 
+function start_explore() 
  scene=sc_explore
  if not DEBUG then
 	  enter_room(2,1)
@@ -114,7 +125,9 @@ function sc_explore()
 		end
 		local mt=mget(mnx,mny)
 		local cliff=fget(mt,2)
-		if (not fget(mt,0))
+		if (fget(mt,1) and not healthy_mons()) then
+			scene=mk_sc_obj(act_msg("You can't go in there!")(room,nil))
+		elseif (not fget(mt,0))
 		   and (not cliff or dy==1)
 					and (not fget(mt,3) or p.i_rock>0)
 					and (not fget(mt,4) or p.i_swim>0)
@@ -122,6 +135,14 @@ function sc_explore()
 		 p.x=nx
 			if cliff then ny=ny+1 end
 			p.y=ny
+			
+			if fget(mt,1) then
+			 if math.random() <= 0.1 then
+   		scene=mk_sc_obj(act_msg("A wild mon approaches!")(room,nil))
+				 return
+				end
+			end
+			
 			return
 		end
 		--- XXX add a bump sound
@@ -137,6 +158,7 @@ function sc_explore()
 	 for oi,o in ipairs(room.obj) do
 		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
 			 scene=mk_sc_obj(o.a(room,oi))
+				return
 			end
   end
 	end
@@ -287,8 +309,83 @@ function sc_itms()
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
+function start_select_active_mon()
+ scene=sc_select_active_mon
+	sam_idx=0
+end
+function sc_select_active_mon()
+ draw_explore()
+
+	local i=0
+	local mn=nil
+	for mn_,mi_ in pairs(play_mons) do
+	 mn=mn_
+	 if i == sam_idx then break end
+	 i=i+1
+	end
+	if not mn then
+	 scene=sc_mons
+		return
+	end
+	
+	local 
+	 mx=5*8
+		my=3*8
+		mw=16
+		mh=5
+	
+	draw_box(mx,my,mw+1,mh+1)
+	spr(400+mn, mx+5, my+5, 0, 4)	
+
+ function move(dm)
+	 sam_idx=(sam_idx+dm)%(#play_mons+1)
+	end
+	if btnp(2,1,10) then move(-1) end
+	if btnp(3,1,10) then move(1) end
+
+ if btnp(B_OK) then
+	 active_mons[mn]=true
+		scene=sc_mons
+	end
+	if btnp(B_BACK) then scene=sc_mons end
+end
+
+mons_idx=nil
 function start_mons()
- 
+ scene=sc_mons
+	mons_idx=0
+end
+function sc_mons()
+ draw_explore()
+
+	local 
+	 mx=5*8
+		my=3*8
+		mw=16
+		mh=(ACTIVE_MONS*2)-1
+	
+	draw_box(mx,my,mw+1,mh+1)
+	for i=0,ACTIVE_MONS-1 do
+	 print((i+1), mx+5+8, my+5+(i*2)*8+4)
+	end
+	local i=0
+	for mn,_ in pairs(active_mons) do
+	 spr(400+mn, mx+5+8+3, my+i*8, 0, 3.5)
+		print("HP: "..play_mons[mn].hp, mx+5+8+3+8*4, my+8+i*8)
+		print("XP: "..play_mons[mn].xp, mx+5+8+3+8*4, my+8+i*8+8)
+	 i=i+1
+	end
+	
+	spr(285, mx+5, my+5+(mons_idx*2)*8+2)
+
+ function move(dm)
+	 mons_idx=(mons_idx+dm)%ACTIVE_MONS
+	end
+	if btnp(0,1,10) then move(-1) end
+	if btnp(1,1,10) then move(1) end
+
+ if btnp(B_OK) then start_select_active_mon() end
+	if btnp(B_BACK) then scene=sc_menu end
 end
 
 function start_dex()
@@ -296,7 +393,6 @@ function start_dex()
 end
 function sc_dex()
  draw_explore()
-	local p=player
 
 	local 
 	 mx=5*8
@@ -407,7 +503,7 @@ atk_vamp={name="Vampire Bite", type=t_corrupt,
 ------------------------MONS-------------------------------
 -----------------------------------------------------------
 
-mons[0]={name="Blobb", hp=60, types={t_grass},
+mons[0]={name="Blobb", hp=60, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_poison,0.5}}}
 
 mons[1]={name="Blobbo", hp=100, types={t_grass},
@@ -416,7 +512,7 @@ mons[1]={name="Blobbo", hp=100, types={t_grass},
 mons[2]={name="Blord", hp=140, types={t_grass},
          atks={{atk_grass,3}, {atk_poison,2}}}
 
-mons[3]={name="Flegg", hp=50, types={t_fire},
+mons[3]={name="Flegg", hp=50, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_air,1}}}
 									
 mons[4]={name="Fyrunt", hp=90, types={t_fire},
@@ -425,7 +521,7 @@ mons[4]={name="Fyrunt", hp=90, types={t_fire},
 mons[5]={name="Fyroar", hp=130, types={t_dragon},
          atks={{atk_fire,1}, {atk_bite,2}}}
 
-mons[6]={name="Pirrah", hp=60, types={t_water},
+mons[6]={name="Pirrah", hp=60, xp=100, types={t_water},
          atks={{atk_bubble,1}, {atk_bite,1}}}
 									
 mons[7]={name="Pirrachomp", hp=100, types={t_water},
@@ -1492,17 +1588,15 @@ rooms[29]={
 }
 
 function TODO()
-	-- Define all Mons
-		-- choose attributes Eg. HP,MOVES,TYPE
-	-- Place characters/enemies/etc.
-	-- Program engine -- mostly done w/ this part
 end
 
 if not DEBUG then
   start_title()
 else
-  start_game()
+  start_explore()
 end
+
+
 -- <TILES>
 -- 001:bbbbbbbbbbb5bbbbb55bbbbbbbbbbbbbbbbb5bbbb5bbb55bbb5bbbbbbbbbbbbb
 -- 002:bbfbbbbbbfcfbb5bb5f5bbbbbb5bbbdbbbbbbdedb8bbbbdbbb5bbb5bbbbbbbbb
