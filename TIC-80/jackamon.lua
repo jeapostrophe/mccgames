@@ -2,7 +2,7 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=true
+DEBUG=false
 
 B_OK=5
 B_BACK=4
@@ -427,6 +427,13 @@ menu={{lab="ITEMS",a=start_itms}
      ,{lab="MONS",a=start_mons}
 					,{lab="DEX",a=start_dex}}
 
+battle_scrs = {}
+
+battle_scrs[33]={x=30, y=0}
+battle_scrs[7]={x=180, y=34}
+battle_scrs[56]={x=180, y=17}
+battle_scrs[81]={x=180, y=51} --XXX There might be a problem here
+
 function monspr(mn) return 400+mn end
 
 function MonTables() end
@@ -450,6 +457,10 @@ t_spirit="Spirit"
 t_corrupt="Corrupt"
 t_dragon="Dragon"
 t_air="Air"
+t_glitch="ERROR"
+
+atk_spurt={name="Gunk Spit", type=t_corrupt,
+           dmg=30, s=491, e=e_ink}
 
 atk_grass={name="Razor Leaf", type=t_grass,
            dmg=30, s=488, e=nil}
@@ -488,7 +499,7 @@ atk_rock={name="Rock Throw", type=t_earth,
            dmg=40, s=495, e=nil}
 											
 atk_fear={name="Scary Face", type=t_normal,
-           dmg=nil, s=506, e=e_ink}
+           dmg=nil, s=506, e=nil}
 											
 atk_cut={name="Slash", type=t_normal,
            dmg=30, s=507, e=nil}
@@ -498,6 +509,9 @@ atk_swipe={name="Fury Swipes", type=t_normal, --This ATK can happen between 1-4 
 
 atk_vamp={name="Vampire Bite", type=t_corrupt,
            dmg=20, s=479, e=e_vamp}
+											
+atk_glitch={name="ERROR", type=t_glitch,
+           dmg=30, s=475, e=nil}
 
 -----------------------------------------------------------
 ------------------------MONS-------------------------------
@@ -506,203 +520,234 @@ atk_vamp={name="Vampire Bite", type=t_corrupt,
 mons[0]={name="Blobb", hp=60, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_poison,0.5}}}
 
-mons[1]={name="Blobbo", hp=100, types={t_grass},
+mons[1]={name="Blobbo", hp=100, xp=100 ,types={t_grass},
          atks={{atk_grass,2}, {atk_poison,1}}}
 									
-mons[2]={name="Blord", hp=140, types={t_grass},
+mons[2]={name="Blord", hp=140, xp=-1 ,types={t_grass},
          atks={{atk_grass,3}, {atk_poison,2}}}
 
 mons[3]={name="Flegg", hp=50, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_air,1}}}
 									
-mons[4]={name="Fyrunt", hp=90, types={t_fire},
+mons[4]={name="Fyrunt", hp=90, xp=100,types={t_fire},
          atks={{atk_fire,1}, {atk_bite,1}}}
 									
-mons[5]={name="Fyroar", hp=130, types={t_dragon},
+mons[5]={name="Fyroar", hp=130, xp=-1, types={t_dragon},
          atks={{atk_fire,1}, {atk_bite,2}}}
 
 mons[6]={name="Pirrah", hp=60, xp=100, types={t_water},
          atks={{atk_bubble,1}, {atk_bite,1}}}
 									
-mons[7]={name="Pirrachomp", hp=100, types={t_water},
+mons[7]={name="Pirrachomp", hp=100, xp=100,types={t_water},
          atks={{atk_bubble,2}, {atk_bite,2}}}
 									
-mons[8]={name="Pirgnash", hp=140, types={t_water},
+mons[8]={name="Pirgnash", hp=140, xp=-1, types={t_water},
          atks={{atk_bubble,3}, {atk_bite,2}}}
 									
-mons[9]={name="Bater", hp=40, types={t_corrupt},
+mons[9]={name="Bater", hp=40, xp=100,types={t_corrupt},
          atks={{atk_vamp,1}, {atk_bite,1}}}
 									
-mons[10]={name="Batger", hp=80, types={t_corrupt},
+mons[10]={name="Batger", hp=80, xp=-1, types={t_corrupt},
          atks={{atk_vamp,2}, {atk_bite,2}}}
 									
-mons[11]={name="GIode", hp=60, types={t_earth},
+mons[11]={name="GIode", hp=60, xp=100, types={t_earth},
          atks={{atk_punch,1}, {atk_rock,1}}}
 									
-mons[12]={name="GIger", hp=100, types={t_earth},
+mons[12]={name="GIger", hp=100, xp=-1, types={t_earth},
          atks={{atk_punch,2}, {atk_rock,2}}}
 									
-mons[13]={name="Cink", hp=40, types={t_normal},
+mons[13]={name="Cink", hp=40, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_fear,1}}}
 									
-mons[14]={name="Compi", hp=80, types={t_normal},
+mons[14]={name="Compi", hp=80, xp=-1, types={t_normal},
          atks={{atk_swipe,2}, {atk_fear,1}}}
 									
-mons[15]={name="Coglow", hp=40, types={t_earth},
+mons[15]={name="Coglow", hp=40, xp=-1, types={t_earth},
          atks={{atk_rock,1}, {atk_zap,1}}}
 									
-mons[16]={name="Reapo", hp=60, types={t_spirit},
+mons[16]={name="Reapo", hp=60, xp=100, types={t_spirit},
          atks={{atk_cut,1}, {atk_vamp,1}}}
 									
-mons[17]={name="Reaplur", hp=100, types={t_spirit},
+mons[17]={name="Reaplur", hp=100, xp=-1, types={t_spirit},
          atks={{atk_cut,2}, {atk_vamp,1}}}
 									
-mons[18]={name="Potlil", hp=60, types={t_grass},
+mons[18]={name="Potlil", hp=60, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_bite,1}}}
 									
-mons[19]={name="Venaomp", hp=100, types={t_grass},
+mons[19]={name="Venaomp", hp=100, xp=100, types={t_grass},
          atks={{atk_poison,1}, {atk_bite,1}}}
 								 
-mons[20]={name="Carvenor", hp=140, types={t_grass},
+mons[20]={name="Carvenor", hp=140, xp=-1, types={t_grass},
          atks={{atk_poison,1.5}, {atk_bite,2}}}
 									
-mons[21]={name="Corruplil", hp=60, types={t_corrupt},
+mons[21]={name="Corruplil", hp=60, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,1}}}
 									
-mons[22]={name="Corrvena", hp=100, types={t_corrupt},
+mons[22]={name="Corrvena", hp=100, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,2}}}
 									
-mons[23]={name="Corrvenor", hp=140, types={t_corrupt},
+mons[23]={name="Corrvenor", hp=140, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_bite,3}}}
 
-mons[24]={name="Toxobb", hp=60, types={t_corrupt},
+mons[24]={name="Toxobb", hp=60, xp=100, types={t_corrupt},
          atks={{atk_poison,1}}}
 									
-mons[25]={name="Toxobbo", hp=100, types={t_corrupt,
+mons[25]={name="Toxobbo", hp=100, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_vamp,1}}}
 									
-mons[26]={name="Toxord", hp=140, types={t_corrupt},
+mons[26]={name="Toxord", hp=140, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_vamp,2}}}
 									
-mons[27]={name="Flyrunt", hp=40, types={t_air},
+mons[27]={name="Flyrunt", hp=40, xp=100, types={t_air},
          atks={{atk_air,1}, {atk_zap,1}}}
 									
-mons[28]={name="Flyig", hp=80, types={t_air},
+mons[28]={name="Flyig", hp=80, xp=100, types={t_air},
          atks={{atk_air,2}, {atk_zap,1}}}
 									
-mons[29]={name="Flyoar", hp=120, types={t_air},
+mons[29]={name="Flyoar", hp=120, xp=-1, types={t_air},
          atks={{atk_air,3}, {atk_cut,1}}}
 									
-mons[30]={name="Legi", hp=40, types={t_spirit},
+mons[30]={name="Legi", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_vamp,1}}}
 									
-mons[31]={name="Legonite", hp=80, types={t_spirit},
+mons[31]={name="Legonite", hp=80, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_vamp,1}}}
 									
-mons[32]={name="Majat", hp=40, types={t_spirit},
+mons[32]={name="Majat", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_vamp,1}}}
 									
-mons[33]={name="Majite", hp=80, types={t_spirit},
+mons[33]={name="Majite", hp=80, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_vamp,1}}}
 									
-mons[34]={name="Voodoll", hp=60, types={t_spirit},
+mons[34]={name="Voodoll", hp=60, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_cut,1}}}
 							  
-mons[35]={name="Voorip", hp=100, types={t_spirit},
+mons[35]={name="Voorip", hp=100, xp=100, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,2}}}
 									
-mons[36]={name="Reapoll", hp=140, types={t_spirit},
+mons[36]={name="Ripoll", hp=140, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,3}}}
 									
-mons[37]={name="Mallo", hp=60, types={t_normal},
+mons[37]={name="Mallo", hp=60, xp=-1, types={t_normal},
          atks={{atk_swipe,1} }}
 									
-mons[38]={name="Erace", hp=100, types={t_earth},
+mons[38]={name="Erace", hp=100, xp=-1, types={t_earth},
          atks={{atk_rock,2}, {atk_zap,2}}}
 									
-mons[39]={name="Erion", hp=100, types={t_earth},
+mons[39]={name="Erion", hp=100, xp=-1, types={t_earth},
          atks={{atk_fire,2}, {atk_rock,2}}}
 									
-mons[40]={name="Eronze", hp=100, types={t_fire},
+mons[40]={name="Eronze", hp=100, xp=-1, types={t_fire},
          atks={{atk_fire,2}, {atk_cut,2}}}
 
-mons[41]={name="Boxsheell", hp=60, types={t_normal},
+mons[41]={name="Boxsheell", hp=60, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_cut,1}}}
 									
-mons[42]={name="Boxcrab", hp=100, types={t_normal},
+mons[42]={name="Boxcrab", hp=100, xp=-1, types={t_normal},
          atks={{atk_swipe,2}, {atk_cut,2}}}
 									
-mons[43]={name="Floatamus", hp=40, types={t_grass},
+mons[43]={name="Floatamus", hp=40, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_bubble,1}}}
 									
-mons[44]={name="Hippadrift", hp=80, types={t_gras},
+mons[44]={name="Hippadrift", hp=80, xp=-1, types={t_gras},
          atks={{atk_grass,2}, {atk_bubble,2}}}
 									
-mons[45]={name="Phlask", hp=40, types={t_corrupt},
+mons[45]={name="Phlask", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,0.5}, {atk_bite,1}}}
 									
-mons[46]={name="Noxial", hp=80, types={t_corrupt},
+mons[46]={name="Noxial", hp=80, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,2}}}
 									
-mons[47]={name="Fumighast", hp=120, types={t_corrupt},
+mons[47]={name="Fumighast", hp=120, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_bite,3}}}
 									
-mons[48]={name="Pottle", hp=60, types={t_earth},
+mons[48]={name="Pottle", hp=60, xp=100, types={t_earth},
          atks={{atk_grass,1}, {atk_rock,1}}}
 									
-mons[49]={name="Trikotta", hp=100, types={t_earth},
+mons[49]={name="Trikotta", hp=100, xp=100, types={t_earth},
          atks={{atk_grass,2}, {atk_rock,2}}}
 									
-mons[50]={name="Terrocortta", hp=140, types={t_earth},
+mons[50]={name="Terrocortta", hp=140, xp=-1, types={t_earth},
          atks={{atk_grass,3}, {atk_rock,3}}}
 									
-mons[50]={name="Kertruffle", hp=40, types={t_corrupt},
+mons[50]={name="Kertruffle", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,.5}}}
 									
-mons[51]={name="Masshroom", hp=80, types={t_corrupt,t_grass},
+mons[51]={name="Masshroom", hp=80, xp=-1, types={t_corrupt,t_grass},
          atks={{atk_poison,1}, {atk_grass,1}}}
 									
-mons[52]={name="Lumishroom", hp=80, types={t_corrupt,t_air},
+mons[52]={name="Lumishroom", hp=80, xp=-1, types={t_corrupt,t_air},
          atks={{atk_poison,1}, {atk_zap,1}}}
 
-mons[53]={name="Perishroom", hp=80, types={t_corrupt,t_spirit},
+mons[53]={name="Perishroom", hp=80, xp=-1, types={t_corrupt,t_spirit},
          atks={{atk_poison,1}, {atk_fear,1}}}
 
-mons[54]={name="Dopple", hp=40, types={t_normal},
+mons[54]={name="Dopple", hp=40, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_bite,1}}}
 									
-mons[55]={name="Artifish", hp=80, types={t_normal},
+mons[55]={name="Artifish", hp=80, xp=-1, types={t_normal},
          atks={{atk_cut,1}, {atk_bite,2}}}
 								
-mons[56]={name="Toxito", hp=40, types={t_corrupt},
+mons[56]={name="Toxito", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,0.5}, {atk_vamp,1}}}
 									
-mons[57]={name="Sanguito", hp=80, types={t_corrupt},
+mons[57]={name="Sanguito", hp=80, xp=-1, types={t_corrupt},
          atks={{atk_poison,1}, {atk_vamp,2}}}
 
-mons[58]={name="Loceam", hp=60, types={t_fire},
+mons[58]={name="Loceam", hp=60, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_bite,1}}}
 									
-mons[59]={name="Flamain", hp=100, types={t_fire},
+mons[59]={name="Flamain", hp=100, xp=100, types={t_fire},
          atks={{atk_fire,2}, {atk_bite,2}}}
 									
-mons[60]={name="Inferail", hp=140, types={t_fire},
+mons[60]={name="Inferail", hp=140, xp=-1, types={t_fire},
          atks={{atk_fire,3}, {atk_zap,2}}}
 									
-mons[61]={name="Dollreap", hp=100, types={t_spirit},
+mons[61]={name="Dollreap", hp=100, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,1}}}
 									
-mons[62]={name="Flajel", hp=60, types={t_normal},
+mons[62]={name="Flajel", hp=60, xp=-1, types={t_normal},
          atks={{atk_grass,1}, {atk_bubble,1}, {atk_fire,1}}}
+									
+mons[63]={name="Inkwid", hp=40, xp=100, types={t_corrupt,t_water},
+         atks={{atk_poison,0.5}, {atk_spurt,1}}}
+									
+mons[64]={name="Inkokt", hp=80, xp=-1, types={t_corrupt,t_water},
+         atks={{atk_poison,1}, {atk_spurt,2}}}
+									
+mons[65]={name="Loneleaf", hp=40, xp=100, types={t_spirit,t_grass},
+         atks={{atk_grass,1}, {atk_fear,1}}}
 
-mons[63]={name="Inferail", hp=140, types={t_fire},
-         atks={{atk_fire,3}, {atk_zap,2}}}
+mons[66]={name="Forthorn", hp=80, xp=-1, types={t_spirit,t_grass},
+         atks={{atk_grass,2}, {atk_fear,2}}}
+									
+mons[67]={name="Orelett", hp=60, xp=100, types={t_earth,t_dragon},
+         atks={{atk_rock,1}, {atk_dragon,1}}}
+									
+mons[68]={name="Anvelid", hp=100, xp=100, types={t_earth,t_dragon},
+         atks={{atk_rock,2}, {atk_dragon,2}}}
+									
+mons[69]={name="Margoplex", hp=140, xp=-1, types={t_earth,t_dragon},
+         atks={{atk_rock,3}, {atk_dragon,3}}}
+									
+mons[70]={name="Phlantern", hp=40, xp=100, types={t_spirit},
+         atks={{atk_fear,1}, {atk_fire,1}}}
+									
+mons[71]={name="Lanturgheist", hp=80, xp=100, types={t_spirit},
+         atks={{atk_fear,2}, {atk_fire,2}}}
 
+mons[72]={name="Spiriturn", hp=120, xp=-1, types={t_spirit},
+         atks={{atk_fear,3}, {atk_fire,3}}}
+									
+mons[73]={name="???", hp=100, xp=-1, types={t_glitch},
+         atks={{atk_glitch,1} }}
+									
 function RoomTables() end
 
 rooms[1]={  
  mx=0,
 	my=17,
+	mons={0,9,18,43,51,55,57,24},
 	obj={
 	[1]={
   x=1,
@@ -764,6 +809,7 @@ rooms[1]={
 rooms[2]={ 
   mx=30,
 	 my=17,
+		mons={},
 		obj={
 		 [1]={
 			 x=40,
@@ -796,6 +842,7 @@ rooms[2]={
 rooms[3]={ 
   mx=60,
 	 my=17,
+		mons={},
 		obj={
 		 [1]={
 			 x=78,
@@ -829,6 +876,7 @@ rooms[3]={
 rooms[4]={ 
   mx=0,
 	 my=34,
+		mons={},
 		obj={
 		 [1]={
 			 x=13,
@@ -859,6 +907,7 @@ rooms[4]={
 rooms[5]={ 
   mx=0,
 	 my=51,
+		mons={0,1,15,18,19,52,57,66},
 		obj={
 		 [1]={
 			 x=27,
@@ -893,6 +942,7 @@ rooms[5]={
 rooms[6]={ 
   mx=30,
 	 my=34,
+		mons={11,15,68,40},
 		obj={
 		[1]={
 		 x=47,
@@ -926,6 +976,7 @@ rooms[6]={
 rooms[7]={ 
   mx=60,
 	 my=34,
+		mons={11,15,68,40},
 		ent={
 		 [1]={
 		  px=60,
@@ -953,6 +1004,7 @@ rooms[7]={
 rooms[8]={
  mx=30,
 	my=51,
+	mons={0,1,15,18,19,52,57,66},
 	obj={
 	 [1]={
 	  x=58,
@@ -990,6 +1042,7 @@ rooms[8]={
 rooms[9]={ 
   mx=90,
 	 my=34,
+		mons={0,9,18,43,51,55,57},
 		obj={
 		[1]={
 		 x=98,
@@ -1035,6 +1088,7 @@ rooms[9]={
 rooms[10]={ 
   mx=30,
 	 my=68,
+		mons={6,11,41,55,56,64,65},
 		obj={
 		[1]={
 		 x=57,
@@ -1066,6 +1120,7 @@ rooms[10]={
 rooms[11]={ 
   mx=0,
 	 my=68,
+		mons={6,7,8,64,65},
 		obj={
 		[1]={
 		 x=7,
@@ -1109,6 +1164,7 @@ rooms[11]={
 rooms[12]={ 
   mx=60,
 	 my=51,
+		mons={6,11,41,55,56,64,65},
 		ent={
 		 [1]={
 		  px=61,
@@ -1136,6 +1192,7 @@ rooms[12]={
 rooms[13]={ 
   mx=90,
 	 my=17,
+		mons={0,1,2,13,18,19,20,43,45,48,52,54,57,66,67},
 		obj={
 		 [1]={
 		 x=116,
@@ -1171,6 +1228,7 @@ rooms[13]={
 rooms[14]={ 
   mx=60,
 	 my=68,
+		mons={0,9,18,43,51,55,57},
 		obj={
 		 [1]={
 			 x=65,
@@ -1216,6 +1274,7 @@ rooms[14]={
 rooms[15]={ 
   mx=90,
 	 my=68,
+		mons={0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62},
 		obj={
 		 [1]={
 		  x=118,
@@ -1273,6 +1332,7 @@ rooms[15]={
 rooms[16]={ 
   mx=90,
 	 my=85,
+		mons={0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62},
 		obj={
 		 [1]={
 			 x=115,
@@ -1330,6 +1390,7 @@ rooms[16]={
 rooms[17]={ 
   mx=120,
 	 my=85,
+		mons={0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62},
 		obj={
 		 [1]={
 			 x=121,
@@ -1371,6 +1432,7 @@ rooms[17]={
 rooms[18]={
   mx=120,
 	 my=68,
+		mons={0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62},
 		obj={
 		 [1]={
 			 x=121,
@@ -1404,6 +1466,7 @@ rooms[18]={
 rooms[19]={ 
   mx=120,
 	 my=51,
+		mons={},
 		ent={
 		 [1]={
 		  px=141,
@@ -1431,6 +1494,7 @@ rooms[19]={
 rooms[20]={ 
   mx=120,
 	 my=34,
+		mons={},
 		obj={
 		 [1]={
 			 x=122,
@@ -1464,6 +1528,7 @@ rooms[20]={
 rooms[21]={ 
   mx=120,
 	 my=17,
+		mons={},
 		ent={
 		 [1]={
 		  px=139,
@@ -1491,6 +1556,7 @@ rooms[21]={
 rooms[22]={ 
   mx=150,
 	 my=17,
+		mons={38,39,40,20},
 		obj={
 		 [1]={
 			 x=162,
@@ -1539,6 +1605,7 @@ rooms[22]={
 rooms[24]={ 
   mx=90,
 	 my=51,
+		mob={},
 		obj={}, -- XXX This room will have an obj, but it will require extra code, for now we'll leave it empty XXX
 		ent={
 		 [1]={
@@ -1557,6 +1624,7 @@ rooms[24]={
 rooms[23]={ 
   mx=150,
 	 my=34,
+		mons={38,39,40,20},
 		ent={
 		 [1]={
 		  px=173,
@@ -1574,6 +1642,7 @@ rooms[23]={
 rooms[25]={ 
   mx=60,
 	 my=85,
+		mons={0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62},
 		obj={
 		 [1]={
 			 x=61,
@@ -1609,6 +1678,7 @@ rooms[25]={
 rooms[26]={ 
   mx=150,
 	 my=85,
+		mons={0,1,15,18,19,52,57,66},
 		ent={
 		 [1]={
 		  px=156,
@@ -1634,6 +1704,7 @@ rooms[26]={
 rooms[27]={ 
   mx=150,
 	 my=68,
+		mons={0,1,15,18,19,52,57,66},
 		obj={
 		 [1]={
 			 x=169,
@@ -1674,6 +1745,7 @@ rooms[27]={
 rooms[28]={ 
   mx=150,
 	 my=51,
+		mons={0,1,15,18,19,52,57,66,32,26,59},
 		ent={
 		 [1]={
 		  px=156,
@@ -1700,6 +1772,7 @@ rooms[28]={
 rooms[29]={ 
   mx=180,
 	 my=68,
+		mons={0,1,15,18,19,52,57,66,6,64},
 		obj={
 		 [1]={
 			 x=196,
@@ -2205,6 +2278,7 @@ end
 -- 216:00d00060000d00c0009d90d00969690d96d6d609066d6600d00900000600d000
 -- 217:90ddd09009666900e6d6d6ec096d69090996990690ddd090069cdd000000dddd
 -- 218:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
+-- 219:7f8fcf8ff7f3fcf33f8f8f8ff3f8f8fccf8f8f3ff8f8f8f33fcf3f7ff8fcf8f7
 -- 223:000000002000000262000026662222660612216000277200002f220000000000
 -- 224:0000000000088000000860000666866006626660000620000002200000000000
 -- 225:70000070007070000700f0700770f00002070f70027770700022070000000000
@@ -2216,7 +2290,8 @@ end
 -- 231:00000000000ff00000f00f000f0a00d00f0000d000d00d00000dd00000000000
 -- 232:0000b0000bb005b005b00bb0b00000000000000b0bb00b500b500bb0000b0000
 -- 233:000020000022220000232200003333000033830000888800008f880000ffff00
--- 234:0000000000088000008008000802008008000080008008000008800000000000
+-- 234:0000000000033000003003000302008003000080008008000008800000000000
+-- 235:0000000000022000002112000217117002111170007117000007700000000000
 -- 236:00feef0000feff0000ffef0000feef0000feff0000ffef0000feef0000feff00
 -- 237:000000000ffffff000aaaa000ffffff0000aa00000ffff00000aa00000000ff0
 -- 238:0000000000000000090909000909090000000000090999000990990000000000
@@ -2264,15 +2339,15 @@ end
 -- 022:d0121212121210102838d0d0101010d0d010108898104e5e1010311010d0000000000000000000040423040404040404000000000000000000000000000000000000000000000004171717151717170400000000000000000000d01010101212d041121212121212d0d0d0d01010d01010d012d0121212d0000000040e4c515151510451515151515151515104515151515151040000d0b1c110102020e0b0c01010101010121212e01010101010102020b0c0d08e8e8efd8e8e8e8e8ece8ece8e8e8e8ee08efd8e8efd8e8e8ece8ece8e8e000000000000000000000000000000000000000000000000000000000000
 -- 023:d0121212d0101010293910d0d010d0d0b0c0108999104f5f1010101010d0000000000000000000041751171717171704000000000000000000000000000000000000000000000004111515151515b40400000000000000000000d01212121212d012121212121212101010d01010d01012d012d0121212d0000000040f2e515151510451515104040451510404515151515151040000d0b0c010102020e0b1c1b0c0101010101212e01010101212101020b1c1d0e0e0fdfdfde0e0e0e0e0e0e0e0e0e0e0e0fdfdfde0e0e0e0e0e0e0e0e0e0000000000000000000000000000000000000000000000000000000000000
 -- 024:d01212d0d010101010101010101010d0b1c11020101010101010101010d0000000000000000000040151515151515104000000000000000000000000000000000000000000000004151515151515150400000000000000000000d01212121212d012121212121212121210d0d010d01212121212121212d0000000040f2e040404040404040404171751511704040404045104040000d0b1c112101010e0b0c0b1c1b0c010101010061010121212121010b0c0d0cececececececececececececececececececececececececececececece000000000000000000000000000000000000000000000000000000000000
--- 025:d0d0d0d0d0d01010105c6c1010daea10a8b82020104858104a5a101010d0000000000000000000040251515151515104000000000000000000000000000000000000000000000004151532425215150400000000000000000000d01212121212d0121210d0d0d010101010d01010d012d0d0d0d0d0d0d0d0000000040f2e041717171717171704515151515104041717175117040000d0b0c012121010e0b1c16171b1c120101010e01012121212121210b1c1d0fcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfc838383fcfcfcfcfc000000000000000000000000000000000000000000000000000000000000
--- 026:d010101010d0d010105d6d1010dbeb10a9b92010104959104b5b101010d0000000000000000000040351515151512104000000000000000000000000000000000000000000000004151515515115150400000000000000000000d03040404050d0101212d010d0d0121210d01010d01212121212121212d0000000040f2e045151515151515104515151515117170e3d3d3d4c040000d0b1c112121210e010106272312020101010e010121212121212106060d0fcf0fcfcfcfcf0fcfcfcfcfcfcfcfcfcf0fcfcfcfcfc83838383fcfcfcfc000000000000000000000000000000000000000000000000000000000000
--- 027:d01008181010d01010b0c0101010101010101010101010101010101012d0000000000000000000045151515151512204000000000000000000000000000000000000000000000004151515151515150400000000000000000000d01010101010d0d01212d0121212121212d01012d01212101012121010d0000000040f2e045151045151040404040404040404040fdedede2e040000d0b0c012121212e010101010101010102020e01010121212121010b0c0d0fcfcfcfcfcfcfcfcfcfcfcf0fcfcfcfcfcfcfcf0fcfcfcfc838383fcfcfc000000000000000000000000000000000000000000000000000000000000
--- 028:d01009191010101010b1c1103040404040405010100a1a101010101212d0000000000000000000040404040404040404000000000000000000000000000000000000000000000004040404350404040400000000000000000000d01010101010d0101212d01212d0d0d0d0d0d012d030404040404050d0d0000000040f2e045151045151171717171717171717040fde2cde2e040000d0b1c11212121207e010b0c0b0c0b0c020e0071010101212101010b1c1d0fcfcfcfcf0fcfcfc838383fcfcfcfcfcfcfcfcf0fcfcfcfcf0fcfcf0f0fc000000000000000000000000000000000000000000000000000000000000
--- 029:d03110101010d0d0d0d0d0d01010251010102020100b1b101010101212d0000000000000000000575757575757575757000000000000000000000000000000000000000000000057575704040457575700000000000000000000d01210101010d0121212d01212d0121212d01212d01010102510101010d0000000040f2e045151045151515151045151515151040fdedede2e040000d0b0c0121212121207e0b1c1b1c1b1c1e0b0c01010101010251010b0c0d0fcfcfcfcfcfcfcfc838383fcfcfcfcfcf0f0fcfcfcfcfcfcfcfcfcfcfcfc000000000000000000000000000000000000000000000000000000000000
--- 030:d010101010101212121212d0d010102531101020201010101010121212d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000057575700000000000000000000000000d0121210101012121210d01212d012d012d01212d01020101025311010d0000000041f1d175151045151515151045151512351041f3f3f3f1d040000d0b1c112121212121207e0e0e0e0e0e007b1c11010101025101010b1c1d0fcfcf0fcfcfcf0fcfc838383fcfc8383fcfcfcfcfcfcfcfcfcfcf0fcfcfc000000000000000000000000000000000000000000000000000000000000
--- 031:d01010101212121012121212d01025251010101020201010121212b0c0d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0121212101012121212d01212d012d012121212d01020102525101010d0000000040404040404040404040404040404040404040404040404040000d0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c02525b0c0b0c0d0fcfcfcfcfcfcfcfcfcfc8383fcfc838383fcfcfcfcfcfcfcfcfcfcfcfcfc000000000000000000000000000000000000000000000000000000000000
--- 032:d01010121212121212121212d01025252510101010201012121212b1c1d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0121212121010121210d012121212d010121212d01010102525251010d0000000575757575757575757575757575757575757575757575757570000d0b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c12525b1c1b1c1d0fcfcfcfcfcfcfcf0fcfcfcfcfcfcfc838383fcfcfcfcf0fcfcfcfcfcfcfc000000000000000000000000000000000000000000000000000000000000
--- 033:d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0d0d0fcfcf0fcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf0fcfcfcfc000000000000000000000000000000000000000000000000000000000000
+-- 025:d0d0d0d0d0d01010105c6c1010daea10a8b82020104858104a5a101010d0000000000000000000040251515151515104000000000000000000000000000000000000000000000004151532425215150400000000000000000000d01212121212d0121210d0d0d010101010d01010d012d0d0d0d0d0d0d0d0000000040f2e041717171717171704515151515104041717175117040000d0b0c012121010e0b1c16171b1c120101010e01012121212121210b1c1d0040404040404040404040404040404040404040404048383830404040404000000000000000000000000000000000000000000000000000000000000
+-- 026:d010101010d0d010105d6d1010dbeb10a9b92010104959104b5b101010d0000000000000000000040351515151512104000000000000000000000000000000000000000000000004151515515115150400000000000000000000d03040404050d0101212d010d0d0121210d01010d01212121212121212d0000000040f2e045151515151515104515151515117170e3d3d3d4c040000d0b1c112121210e010106272312020101010e010121212121212106060d004f004040404f0040404040404040404f004040404048383838304040404000000000000000000000000000000000000000000000000000000000000
+-- 027:d01008181010d01010b0c0101010101010101010101010101010101012d0000000000000000000045151515151512204000000000000000000000000000000000000000000000004151515151515150400000000000000000000d01010101010d0d01212d0121212121212d01012d01212101012121010d0000000040f2e045151045151040404040404040404040fdedede2e040000d0b0c012121212e010101010101010102020e01010121212121010b0c0d00404040404040404040404f004040404040404f004040404838383040404000000000000000000000000000000000000000000000000000000000000
+-- 028:d01009191010101010b1c1103040404040405010100a1a101010101212d0000000000000000000040404040404040404000000000000000000000000000000000000000000000004040404350404040400000000000000000000d01010101010d0101212d01212d0d0d0d0d0d012d030404040404050d0d0000000040f2e045151045151171717171717171717040fde2cde2e040000d0b1c11212121207e010b0c0b0c0b0c020e0071010101212101010b1c1d004040404f00404048383830404040404040404f004040404f00404f0f004000000000000000000000000000000000000000000000000000000000000
+-- 029:d03110101010d0d0d0d0d0d01010251010102020100b1b101010101212d0000000000000000000575757575757575757000000000000000000000000000000000000000000000057575704040457575700000000000000000000d01210101010d0121212d01212d0121212d01212d01010102510101010d0000000040f2e045151045151515151045151515151040fdedede2e040000d0b0c0121212121207e0b1c1b1c1b1c1e0b0c01010101010251010b0c0d004040404040404048383830404040404f0f0040404040404040404040404000000000000000000000000000000000000000000000000000000000000
+-- 030:d010101010101212121212d0d010102531101020201010101010121212d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000057575700000000000000000000000000d0121210101012121210d01212d012d012d01212d01020101025311010d0000000041f1d175151045151515151045151512351041f3f3f3f1d040000d0b1c112121212121207e0e0e0e0e0e007b1c11010101025101010b1c1d00404f0040404f004048383830404838304040404040404040404f0040404000000000000000000000000000000000000000000000000000000000000
+-- 031:d01010101212121012121212d01025251010101020201010121212b0c0d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0121212101012121212d01212d012d012121212d01020102525101010d0000000040404040404040404040404040404040404040404040404040000d0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c0b0c02525b0c0b0c0d0040404040404040404048383040483838304040404040404040404040404000000000000000000000000000000000000000000000000000000000000
+-- 032:d01010121212121212121212d01025252510101010201012121212b1c1d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0121212121010121210d012121212d010121212d01010102525251010d0000000575757575757575757575757575757575757575757575757570000d0b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c1b1c12525b1c1b1c1d004040404040404f00404040404040483838304040404f004040404040404000000000000000000000000000000000000000000000000000000000000
+-- 033:d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0d0d00404f004040404040404040404040404040404040404040404f004040404000000000000000000000000000000000000000000000000000000000000
 -- 034:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0d0d025d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d025d0d0d0d0d0d0aeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeae000000000000000000000000000000000000000000000000000000000000
 -- 035:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d025252525d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0000000000000000000000000000000000000000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d01010101025252525d0d0d0d0d0d0aeaeaeaeaee2e2e2e2e2aeaeaefce2e2e2aeaeaee2e2aeaeaeaeaeaeaeae000000000000000000000000000000000000000000000000000000000000
 -- 036:00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0e0e0e0e0e0e0e0e0e000000000000000000000000000d0252525251061711010d0411060121212121212121212121212121012d0000404040404040404040404040404040404000000000000000000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d010101010102010252525d0d0d0d0d0d0aeaeaeaeaefcfce2e2e2aeaeaeaee2e2fcaeaee2e2e2e2e2aeaeaeaeaeae000000000000000000000000000000000000000000000000000000000000
