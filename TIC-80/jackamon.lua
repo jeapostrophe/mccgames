@@ -2,7 +2,7 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=false
+DEBUG=true
 
 B_OK=5
 B_BACK=4
@@ -82,7 +82,7 @@ function start_explore()
  if not DEBUG then
 	  enter_room(2,1)
  else
-	  enter_room(4,1)
+	  enter_room(1,1)
 	end
 end
 
@@ -370,7 +370,7 @@ function sc_mons()
 	end
 	local i=0
 	for mn,_ in pairs(active_mons) do
-	 spr(400+mn, mx+5+8+3, my+i*8, 0, 3.5)
+	 spr(400+mn, mx+5+8+6, my+i*8, 0, 3.5)
 		print("HP: "..play_mons[mn].hp, mx+5+8+3+8*4, my+8+i*8)
 		print("XP: "..play_mons[mn].xp, mx+5+8+3+8*4, my+8+i*8+8)
 	 i=i+1
@@ -670,76 +670,76 @@ mons[49]={name="Trikotta", hp=100, xp=100, types={t_earth},
 mons[50]={name="Terrocortta", hp=140, xp=-1, types={t_earth},
          atks={{atk_grass,3}, {atk_rock,3}}}
 									
-mons[50]={name="Kertruffle", hp=40, xp=100, types={t_corrupt},
+mons[51]={name="Kertruffle", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,.5}}}
 									
-mons[51]={name="Masshroom", hp=80, xp=-1, types={t_corrupt,t_grass},
+mons[52]={name="Masshroom", hp=80, xp=-1, types={t_corrupt,t_grass},
          atks={{atk_poison,1}, {atk_grass,1}}}
 									
-mons[52]={name="Lumishroom", hp=80, xp=-1, types={t_corrupt,t_air},
+mons[53]={name="Lumishroom", hp=80, xp=-1, types={t_corrupt,t_air},
          atks={{atk_poison,1}, {atk_zap,1}}}
 
-mons[53]={name="Perishroom", hp=80, xp=-1, types={t_corrupt,t_spirit},
+mons[54]={name="Perishroom", hp=80, xp=-1, types={t_corrupt,t_spirit},
          atks={{atk_poison,1}, {atk_fear,1}}}
 
-mons[54]={name="Dopple", hp=40, xp=100, types={t_normal},
+mons[55]={name="Dopple", hp=40, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_bite,1}}}
 									
-mons[55]={name="Artifish", hp=80, xp=-1, types={t_normal},
+mons[56]={name="Artifish", hp=80, xp=-1, types={t_normal},
          atks={{atk_cut,1}, {atk_bite,2}}}
 								
-mons[56]={name="Toxito", hp=40, xp=100, types={t_corrupt},
+mons[57]={name="Toxito", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,0.5}, {atk_vamp,1}}}
 									
-mons[57]={name="Sanguito", hp=80, xp=-1, types={t_corrupt},
+mons[58]={name="Sanguito", hp=80, xp=-1, types={t_corrupt},
          atks={{atk_poison,1}, {atk_vamp,2}}}
 
-mons[58]={name="Loceam", hp=60, xp=100, types={t_fire},
+mons[59]={name="Loceam", hp=60, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_bite,1}}}
 									
-mons[59]={name="Flamain", hp=100, xp=100, types={t_fire},
+mons[60]={name="Flamain", hp=100, xp=100, types={t_fire},
          atks={{atk_fire,2}, {atk_bite,2}}}
 									
-mons[60]={name="Inferail", hp=140, xp=-1, types={t_fire},
+mons[61]={name="Inferail", hp=140, xp=-1, types={t_fire},
          atks={{atk_fire,3}, {atk_zap,2}}}
 									
-mons[61]={name="Dollreap", hp=100, xp=-1, types={t_spirit},
+mons[62]={name="Dollreap", hp=100, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,1}}}
 									
-mons[62]={name="Flajel", hp=60, xp=-1, types={t_normal},
+mons[63]={name="Flajel", hp=60, xp=-1, types={t_normal},
          atks={{atk_grass,1}, {atk_bubble,1}, {atk_fire,1}}}
 									
-mons[63]={name="Inkwid", hp=40, xp=100, types={t_corrupt,t_water},
+mons[64]={name="Inkwid", hp=40, xp=100, types={t_corrupt,t_water},
          atks={{atk_poison,0.5}, {atk_spurt,1}}}
 									
-mons[64]={name="Inkokt", hp=80, xp=-1, types={t_corrupt,t_water},
+mons[65]={name="Inkokt", hp=80, xp=-1, types={t_corrupt,t_water},
          atks={{atk_poison,1}, {atk_spurt,2}}}
 									
-mons[65]={name="Loneleaf", hp=40, xp=100, types={t_spirit,t_grass},
+mons[66]={name="Loneleaf", hp=40, xp=100, types={t_spirit,t_grass},
          atks={{atk_grass,1}, {atk_fear,1}}}
 
-mons[66]={name="Forthorn", hp=80, xp=-1, types={t_spirit,t_grass},
+mons[67]={name="Forthorn", hp=80, xp=-1, types={t_spirit,t_grass},
          atks={{atk_grass,2}, {atk_fear,2}}}
 									
-mons[67]={name="Orelett", hp=60, xp=100, types={t_earth,t_dragon},
+mons[68]={name="Orelett", hp=60, xp=100, types={t_earth,t_dragon},
          atks={{atk_rock,1}, {atk_dragon,1}}}
 									
-mons[68]={name="Anvelid", hp=100, xp=100, types={t_earth,t_dragon},
+mons[69]={name="Anvelid", hp=100, xp=100, types={t_earth,t_dragon},
          atks={{atk_rock,2}, {atk_dragon,2}}}
 									
-mons[69]={name="Margoplex", hp=140, xp=-1, types={t_earth,t_dragon},
+mons[70]={name="Margoplex", hp=140, xp=-1, types={t_earth,t_dragon},
          atks={{atk_rock,3}, {atk_dragon,3}}}
 									
-mons[70]={name="Phlantern", hp=40, xp=100, types={t_spirit},
+mons[71]={name="Phlantern", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_fire,1}}}
 									
-mons[71]={name="Lanturgheist", hp=80, xp=100, types={t_spirit},
+mons[72]={name="Lanturgheist", hp=80, xp=100, types={t_spirit},
          atks={{atk_fear,2}, {atk_fire,2}}}
 
-mons[72]={name="Spiriturn", hp=120, xp=-1, types={t_spirit},
+mons[73]={name="Spiriturn", hp=120, xp=-1, types={t_spirit},
          atks={{atk_fear,3}, {atk_fire,3}}}
 									
-mons[73]={name="???", hp=100, xp=-1, types={t_glitch},
+mons[74]={name="???", hp=100, xp=-1, types={t_glitch},
          atks={{atk_glitch,1} }}
 									
 function RoomTables() end
@@ -2256,7 +2256,7 @@ end
 -- 194:000000e000005500009955000c9e9cc0c949c90c49949c444449944404444440
 -- 195:0000000000cc80000c8ccc0008cc8c000888880000cfc00000fff00000f0f000
 -- 196:0000000000000000000000000c000c00040c04000bb4bbc05b5bbb40bbbbbbb0
--- 197:00f00000f0d0f0f0dfdfdfd00d0ddd000acaca00aaa4aaa0aa4a4aa00aaaaa00
+-- 197:00f00000f0d0f0f0dfdfdfd00d0ddd000acaca00aaa7aaa0aa7a7aa00aaaaa00
 -- 198:0000000000000000006000000666060000c00c060033330c032323c033333333
 -- 199:00055500000a005006666005077776050555570507ff755005ff550005005000
 -- 200:0b05500006555500bbb555007b7bb500cbcbbb05cccbbbb50cccbb0555005500
@@ -2278,7 +2278,7 @@ end
 -- 216:00d00060000d00c0009d90d00969690d96d6d609066d6600d00900000600d000
 -- 217:90ddd09009666900e6d6d6ec096d69090996990690ddd090069cdd000000dddd
 -- 218:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
--- 219:7f8fcf8ff7f3fcf33f8f8f8ff3f8f8fccf8f8f3ff8f8f8f33fcf3f7ff8fcf8f7
+-- 219:cfcfcfcff3f3f3f378787878cfcfcfcff3f3f3f38a878a87cfcfcfcff7f3f7f3
 -- 223:000000002000000262000026662222660612216000277200002f220000000000
 -- 224:0000000000088000000860000666866006626660000620000002200000000000
 -- 225:70000070007070000700f0700770f00002070f70027770700022070000000000
