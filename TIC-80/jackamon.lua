@@ -488,7 +488,7 @@ menu={{lab="ITEMS",a=start_itms}
 
 battle_scrs = {}
 
---- XXX add ex, ey and px, py
+--- XXX add ajust ex, ey, px, py
 battle_scrs[33]={x=30, y=0, ex=17, ey=7, px=6, py=10}
 battle_scrs[7]={x=180, y=34, ex=17, ey=7, px=6, py=10}
 battle_scrs[56]={x=180, y=17,ex=17, ey=7, px=6, py=10}
