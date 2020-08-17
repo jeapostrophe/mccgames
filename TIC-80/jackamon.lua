@@ -2,7 +2,7 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=false
+DEBUG=true
 
 B_OK=5
 B_BACK=4
@@ -176,12 +176,26 @@ battleSteps["TRANS"] =
 battleSteps["BATTLE"] =
  { t = 1
 	, next = "BATTLE" }
+
 battle = nil
+function start_battle(mn)
+	local which_trans = math.random(2)
+
+ battle={ t=battleSteps["MSG"].t
+	       , step="MSG"
+	       , trans=which_trans
+	       , en=mn
+								, mons={} }
+	battle.mons[mn] = { hp=mons[mn].hp }
+ seen_mons[mn] = true
+
+	scene=sc_battle
+end
 function sc_battle()
  local B = battle
  if B.step == "MSG" then
 	 draw_explore()
-	 draw_msg("A wild " .. mons[B.ene].name .. " approaches!")
+	 draw_msg("A wild " .. mons[B.en].name .. " approaches!")
  elseif B.step == "TRANS" then
 		local trans_mx = 150 + 30*B.trans
 	 local trans_my = 0
@@ -193,8 +207,34 @@ function sc_battle()
 	 local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
 		map(scr.x, scr.y, 30, 17)
 		
-		spr(monspr(B.ene), scr.ex*8, scr.ey*8, 0, 4)
-		spr(monspr(active_mons[1]), scr.px*8, scr.py*8, 0, 4)
+		local am=active_mons[1]
+		spr(monspr(B.en), scr.ex*8, scr.ey*8, 0, 4)
+		spr(monspr(am), scr.px*8, scr.py*8, 0, 4)
+		
+		function showmoninfo(mn, mtab, ix, iy)
+		 local nm=mons[mn].name
+			local hpx=(ix+1)*8
+			local hpy=(iy+2)*8
+			local hpw=5
+
+			draw_box(ix*8, iy*8, hpw+3, 3)
+			print(nm, (ix+1)*8, (iy+1)*8)
+			spr(262, hpx+8*0, hpy, 8)
+			spr(263, hpx+8*1.25, hpy, 8)
+			for i=0,hpw-3 do
+			 spr(264, hpx+8*(2.25+i), hpy, 8)
+			end
+			spr(263, hpx+8*(0.25+hpw), hpy, 8, 1, 0, 2)
+			spr(278, hpx+8*(1.5+hpw), hpy, 8)
+			
+			local hp_per=mtab[mn].hp/mons[mn].hp
+			local hpc=11
+			if ( hp_per <= 0.5 ) then hpc=14 end
+			if ( hp_per <= 0.25 ) then hpc=6 end
+			rect(hpx+8*1.25+1, hpy+3, (14+8*(hpw-2))*hp_per, 2, hpc)
+		end
+		showmoninfo(B.en, B.mons, 1, 0.5)
+		showmoninfo(am, play_mons, 12, 12.5)
 		
 		if btnp(B_BACK) then scene=sc_explore end
 	end
@@ -205,17 +245,6 @@ function sc_battle()
 		B.step = next
 		B.t = battleSteps[next].t
 	end
-end
-function start_battle(mn)
-	local which_trans = math.random(2)
-
- battle={ t=battleSteps["MSG"].t
-	       , step="MSG"
-	       , trans=which_trans
-	       , ene=mn
-								, hp=mons[mn].hp }
-
-	scene=sc_battle
 end
 
 function mk_sc_obj(draw_obj)
@@ -2127,10 +2156,10 @@ end
 -- 003:0000000000fff6000066666000c1c10000cccc00006666000c0330c000033000
 -- 004:0000000000fff6000066666000c1c10000cccc00006666000c0330c000300300
 -- 005:0000000000fff6000066666000c1c10000cccc000c6666c00003300000300300
--- 006:0f0fffff707000ff7070770f77707070707070707070770f0f0070ffffff0fff
--- 007:ffffffff00000000aaaaaaaabbbbbbbbbbbbbbbbaaaaaaaa00000000ffffffff
--- 008:ffffffff0000000faaaaaaa0bbbbbbbabbbbbbbaaaaaaaa00000000fffffffff
--- 009:000000000aaaaaa0affffffaaffaaffaaffaaffaaffffffa0aaaaaa000000000
+-- 006:8888888878788888787877887778787878787878787877888888788888888888
+-- 007:88888888888888888aaaaaaaa8888888a88888888aaaaaaa8888888888888888
+-- 008:8888888888888888aaaaaaaa8888888888888888aaaaaaaa8888888888888888
+-- 009:0000000002222220266262622622266226622262262626620222222000000000
 -- 010:0000000002222220233333322322223223322332233333320222222000000000
 -- 011:00000000099999909eeeeee99e99e9e99e9e99e99eeeeee90999999000000000
 -- 012:6777777777777777770000007700000077000000770000007700000077000000
@@ -2143,9 +2172,7 @@ end
 -- 019:000000000000000000aaaa0000a7c70000ccac0000ff6f000c0f60c0000ff000
 -- 020:000000000000000000aaaa0000a7c70000ccac0000ff6f000c0f60c000f00f00
 -- 021:000000000000000000aaaa0000a7c70000ccac000cff6fc0000f600000f00f00
--- 022:fffffffff00000000aaaaaaaa0000000a00000000aaaaaaaf0000000ffffffff
--- 023:ffffffff00000000aaaaaaaaeeeeeeeeeeeeeeeeaaaaaaaa00000000ffffffff
--- 024:ffffffff0000000faaaaaaa0eeeeeeeaeeeeeeeaaaaaaaa00000000fffffffff
+-- 022:000000000aaaaaa0affffffaaffaaffaaffaaffaaffffffa0aaaaaa000000000
 -- 025:00000000077777707ff7fff77ff777f77f777ff77fff7ff70777777000000000
 -- 026:00000000055555505bbbbbb55b555bb55bb555b55bbbbbb50555555000000000
 -- 027:0000000006666660669999666996999669996996669669660666666000000000
@@ -2159,9 +2186,6 @@ end
 -- 035:0000000000000000006888000081c100008ccc0000dddd000c0220c000022000
 -- 036:0000000000000000006888000081c100008ccc0000dddd000c0220c000200200
 -- 037:0000000000000000006888000081c100008ccc000cddddc00002200000200200
--- 038:0f0fffff606000ff6060660f66606060606060606060660f0f0060ffffff0fff
--- 039:ffffffff00000000aaaaaaaa0000000000000000aaaaaaaa00000000ffffffff
--- 040:ffffffff0000000faaaaaaa06666666a6666666aaaaaaaa00000000fffffffff
 -- 041:00000000088888808cc8ccc88c8888c88cc88cc88c8cc8c80888888000000000
 -- 042:00000000011111101dddddd111d1d1d11d1d1d111dddddd10111111000000000
 -- 043:0000000004444440499449944949449449444494499449940444444000000000
@@ -2262,7 +2286,6 @@ end
 -- 138:0022220000262600002222000302203000300300000330000030030000000000
 -- 139:0002000200200026022222662e22222622200022000002220060222000222200
 -- 140:0000000000aa0a000affafa0afaffafaaffeeffa0aaaeaa0000e000000000000
--- 143:0000000002222220266262622622266226622262262626620222222000000000
 -- 144:00000000000000000000000000000000000bb00000bf5b0000b55b0000bbbb00
 -- 145:000000000000000000000000000bb00000bf5b000bf555b00b5555b00bbbbbb0
 -- 146:000000000000000000bbbb000bf555b0bf55555bb555555bb555555bbbbbbbbb
