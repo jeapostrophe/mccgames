@@ -2,7 +2,7 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
-DEBUG=false
+DEBUG=true
 
 B_OK=5
 B_BACK=4
@@ -176,6 +176,89 @@ battleSteps["TRANS"] =
 battleSteps["BATTLE"] =
  { t = 1
 	, next = "BATTLE" }
+battleSteps["BATMSG"] = 
+ { t = 32
+ , next = "BATTLE" }
+
+function batItems()
+ batMessage(
+	 "You tried to look at your items...",
+		batNotReady)
+end
+function batSwitch()
+ batMessage(
+	 "You tried to switch your mon...",
+		batNotReady)
+end
+function batEnemyTurn()
+ batMessage(
+	 "The enemy tried to attack...",
+		batNotReady)
+end
+function batNotReady()
+	batMessage(
+		"But, we didn't implement it yet!",
+		nil)
+end
+function batRun()
+ batMessage(
+	 "You try to run away...",
+		function ()
+   if math.random() <= 0.5 then
+    batMessage(
+				 "...and you got away!",
+					function ()
+    		scene=sc_explore
+					end)
+  	else
+			 batMessage(
+				 "...but you couldn't escape!",
+					batEnemyTurn)
+			end
+	 end)
+end
+
+function batMessage(m, after)
+ local B=battle
+	B.step="BATMSG"
+	B.t=battleSteps[B.step].t
+	if not after then after="BATTLE" end
+ battleSteps[B.step].next=after
+	B.msg=m
+end
+
+function batDoAttack(atk, power_lvl)
+ batMessage(
+	 "You used "..atk.name.."...",
+		batNotReady)
+end
+function batAttack()
+ local B=battle
+ local bm={}
+	local am=active_mons[1]
+	local mi=mons[am]
+	
+	bm.idx=0
+	bm.back=function() B.bm=batMenuTop end
+	bm.opts={}
+	for aidx, ai in ipairs(mi.atks) do
+	 local atk=ai[1]
+	 bm.opts[aidx]=
+		 { label=atk.name
+		 , a=function ()
+			     bm.back() 
+			     batDoAttack(atk, ai[2])
+							end }
+	end
+ B.bm=bm
+end
+
+batMenuTop={ idx=0
+											, opts={ {label="ATTACK",a=batAttack}
+											       , {label="ITEMS",a=batItems}
+																		, {label="SWITCH",a=batSwitch}
+																		, {label="RUN",a=batRun} }
+											, back=function() end }
 
 battle = nil
 function start_battle(mn)
@@ -185,9 +268,14 @@ function start_battle(mn)
 	       , step="MSG"
 	       , trans=which_trans
 	       , en=mn
+								, bm=batMenuTop
 								, mons={} }
-	battle.mons[mn] = { hp=mons[mn].hp }
+	battle.mons[mn] = { hp=mons[mn].hp 
+	                  , e=e_normal}
  seen_mons[mn] = true
+	for pmn, pi in pairs(play_mons) do
+	 pi.e = e_normal
+	end
 
 	scene=sc_battle
 end
@@ -203,7 +291,7 @@ function sc_battle()
 		local clear = 0
 		if ( B.t % 32 < 16 ) then clear = 15 end
 		map(trans_mx, trans_my, 30, 17, 0, 0, clear)
-	elseif B.step == "BATTLE" then
+	elseif B.step == "BATTLE" or B.step == "BATMSG" then
 	 local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
 		map(scr.x, scr.y, 30, 17)
 		
@@ -225,7 +313,9 @@ function sc_battle()
 			 spr(264, hpx+8*(2.25+i), hpy, 8)
 			end
 			spr(263, hpx+8*(0.25+hpw), hpy, 8, 1, 0, 2)
-			spr(278, hpx+8*(1.5+hpw), hpy, 8)
+			
+			local e=mtab[mn].e
+			spr(278+16*(e//5)+e%5, hpx+8*(1.5+hpw), hpy, 8)
 			
 			local hp_per=mtab[mn].hp/mons[mn].hp
 			local hpc=11
@@ -236,14 +326,40 @@ function sc_battle()
 		showmoninfo(B.en, B.mons, 1, 0.5)
 		showmoninfo(am, play_mons, 12, 12.5)
 		
-		if btnp(B_BACK) then scene=sc_explore end
+		--- Show attack menu
+		local Bm=B.bm
+		local amx=23.5*8
+		local amy=11.5*8
+		local bmMax=#(Bm.opts)
+		draw_box(amx, amy, 5, 4)
+		for oidx, oi in ipairs(Bm.opts) do
+		 print(oi.label, amx+8, amy+4+8*(oidx-1))
+		end
+		spr(285, amx+1, (amy+2)+8*(Bm.idx), 0)
+	
+	 if B.step == "BATMSG" then
+		 draw_msg(B.msg, 4*8, 6*8)
+		else	
+   function move(dm)
+	   Bm.idx=(Bm.idx+dm)%bmMax
+	  end
+	  if btnp(0,1,10) then move(-1) end
+	  if btnp(1,1,10) then move(1) end
+	
+	  if btnp(B_BACK) then Bm.back() end
+	  if btnp(B_OK) then Bm.opts[Bm.idx+1].a() end
+		end
 	end
 
  B.t = B.t - 1
 	if B.t == 0 then
 		local next = battleSteps[B.step].next
-		B.step = next
-		B.t = battleSteps[next].t
+		if type(next) == "function" then
+		 next()
+		else
+ 		B.step = next
+	 	B.t = battleSteps[next].t
+		end
 	end
 end
 
@@ -257,9 +373,9 @@ function mk_sc_obj(draw_obj)
  end
 end
 
-function draw_msg(m)
-	local mx=1
-	local my=15*8-1
+function draw_msg(m, mx, my)
+	mx=mx or 1
+	my=my or (15*8-1)
 	local w=(string.len(m)+2)*5+2
 	draw_box(mx,my,math.ceil((w)/8),1)
 	print(m,mx+3,my+6,15)
@@ -353,7 +469,7 @@ function sc_menu()
 end
 
 itms=
-	 { i_hp={480,"HP token"}
+	 { i_hp={480,"Avacado"}
 		, i_rock={481,"TM Rock Break"} --Yep, I do "rock"... get it?
 		, i_swim={482,"TM Swim"}
 		, i_max={483,"Max HP token"}
@@ -527,6 +643,7 @@ function monspr(mn) return 400+mn end
 
 function MonTables() end
 
+e_normal=0
 e_poison=1
 e_paralize=2
 e_ink=3
@@ -548,37 +665,37 @@ t_dragon="Dragon"
 t_air="Air"
 t_glitch="ERROR"
 
-atk_spurt={name="Gunk Spit", type=t_corrupt,
+atk_spurt={name="Gunk", type=t_corrupt,
            dmg=30, s=491, e=e_ink}
 
-atk_grass={name="Razor Leaf", type=t_grass,
+atk_grass={name="Leaf", type=t_grass,
            dmg=30, s=488, e=nil}
 
-atk_poison={name="Poison Spit", type=t_corrupt,
+atk_poison={name="Poison", type=t_corrupt,
            dmg=10, s=505, e=e_poison}
 
-atk_fire={name="Flamethrower", type=t_fire,
+atk_fire={name="Flame", type=t_fire,
            dmg=30, s=486, e=e_poison}
 											
-atk_air={name="Tornado", type=t_air,
+atk_air={name="Fly", type=t_air,
            dmg=30, s=493, e=nil}
 											
-atk_bubble={name="Bubble Beam", type=t_water,
+atk_bubble={name="Beam", type=t_water,
            dmg=30, s=487, e=nil}
 
 atk_bite={name="Bite", type=t_normal,
            dmg=30, s=504, e=nil}
 										
-atk_dragon={name="Dragon Pulse", type=t_dragon,
+atk_dragon={name="Pulse", type=t_dragon,
            dmg=50, s=510, e=e_confuse}
 											
-atk_zap={name="Thunder Bolt", type=t_air,
+atk_zap={name="Zap Bolt", type=t_air,
            dmg=30, s=492, e=a_paralize}
 											
-atk_Cfire={name="Corrupted Flame", type=t_corrupt,
+atk_Cfire={name="Cor Flame", type=t_corrupt,
            dmg=30, s=489, e=e_burn}
 											
-atk_Cbubble={name="Corrupted Bubble Beam", type=t_corrupt,
+atk_Cbubble={name="Cor Bubble", type=t_corrupt,
            dmg=30, s=490, e=nil}
 											
 atk_punch={name="Karate Chop", type=t_earth,
@@ -587,16 +704,16 @@ atk_punch={name="Karate Chop", type=t_earth,
 atk_rock={name="Rock Throw", type=t_earth,
            dmg=40, s=495, e=nil}
 											
-atk_fear={name="Scary Face", type=t_normal,
+atk_fear={name="Fear", type=t_normal,
            dmg=nil, s=506, e=nil}
 											
 atk_cut={name="Slash", type=t_normal,
            dmg=30, s=507, e=nil}
 											
-atk_swipe={name="Fury Swipes", type=t_normal, --This ATK can happen between 1-4 times in arow
+atk_swipe={name="Fury Swipe", type=t_normal, --This ATK can happen between 1-4 times in arow
            dmg=50, s=508, e=nil} --Ok this one is weird, It technacly has Two diffrent ATK spries but for now I'll Just put down one
 
-atk_vamp={name="Vampire Bite", type=t_corrupt,
+atk_vamp={name="Vamp Bite", type=t_corrupt,
            dmg=20, s=479, e=e_vamp}
 											
 atk_glitch={name="ERROR", type=t_glitch,
@@ -2159,9 +2276,9 @@ end
 -- 006:8888888878788888787877887778787878787878787877888888788888888888
 -- 007:88888888888888888aaaaaaaa8888888a88888888aaaaaaa8888888888888888
 -- 008:8888888888888888aaaaaaaa8888888888888888aaaaaaaa8888888888888888
--- 009:0000000002222220266262622622266226622262262626620222222000000000
--- 010:0000000002222220233333322322223223322332233333320222222000000000
--- 011:00000000099999909eeeeee99e99e9e99e9e99e99eeeeee90999999000000000
+-- 009:0000000000333300000220000033330000222200003223000033330000000000
+-- 010:0000000000eeee000009900000eeee000099e900009e990000eeee0000000000
+-- 011:0000000000bbbb000005500000bbbb0000555b0000b5550000bbbb0000000000
 -- 012:6777777777777777770000007700000077000000770000007700000077000000
 -- 013:7777777777777777000000000000000000000000000000000000000000000000
 -- 014:7777777677777777000000770000007700000077000000770000007700000077
@@ -2173,9 +2290,11 @@ end
 -- 020:000000000000000000aaaa0000a7c70000ccac0000ff6f000c0f60c000f00f00
 -- 021:000000000000000000aaaa0000a7c70000ccac000cff6fc0000f600000f00f00
 -- 022:000000000aaaaaa0affffffaaffaaffaaffaaffaaffffffa0aaaaaa000000000
+-- 023:0000000002222220233333322322223223322332233333320222222000000000
+-- 024:00000000099999909eeeeee99e99e9e99e9e99e99eeeeee90999999000000000
 -- 025:00000000077777707ff7fff77ff777f77f777ff77fff7ff70777777000000000
 -- 026:00000000055555505bbbbbb55b555bb55bb555b55bbbbbb50555555000000000
--- 027:0000000006666660669999666996999669996996669669660666666000000000
+-- 027:0000000000999900000660000099990000969900009969000096690000000000
 -- 028:7700000077000000770000007700000077000000770000007700000077000000
 -- 029:0000000000f0000000ff000000fff00000ffa00000fa000000a0000000000000
 -- 030:0000007700000077000000770000007700000077000000770000007700000077
@@ -2186,9 +2305,12 @@ end
 -- 035:0000000000000000006888000081c100008ccc0000dddd000c0220c000022000
 -- 036:0000000000000000006888000081c100008ccc0000dddd000c0220c000200200
 -- 037:0000000000000000006888000081c100008ccc000cddddc00002200000200200
--- 041:00000000088888808cc8ccc88c8888c88cc88cc88c8cc8c80888888000000000
--- 042:00000000011111101dddddd111d1d1d11d1d1d111dddddd10111111000000000
--- 043:0000000004444440499449944949449449444494499449940444444000000000
+-- 038:0000000006666660669999666996999669996996669669660666666000000000
+-- 039:00000000088888808cc8ccc88c8888c88cc88cc88c8cc8c80888888000000000
+-- 040:00000000011111101dddddd111d1d1d11d1d1d111dddddd10111111000000000
+-- 041:0000000004444440499449944949449449444494499449940444444000000000
+-- 042:0000000002222220266262622622266226622262262626620222222000000000
+-- 043:0000000000999900000440000099990000944900009449000099990000000000
 -- 044:7700000077000000770000007700000077000000770000007777777767777777
 -- 045:0000000000000000000000000000000000000000000000007777777777777777
 -- 046:0000007700000077000000770000007700000077000000777777777777777776
@@ -2363,12 +2485,12 @@ end
 -- 218:0000cf000000f3000078780000cfcf0000f3f30000878a0000cfcf0000f3f700
 -- 219:cfcfcfcff3f3f3f378787878cfcfcfcff3f3f3f38a878a87cfcfcfcff7f3f7f3
 -- 223:000000002000000262000026662222660612216000277200002f220000000000
--- 224:0000000000088000000860000666866006626660000620000002200000000000
+-- 224:0000000000055000005bb500005bb50005b22b5005b24b5005bbbb5000555500
 -- 225:70000070007070000700f0700770f00002070f70027770700022070000000000
 -- 226:0000000000ffff0000f0f0f00fffff00011ff1100dd11dd00dddddd000000000
 -- 227:00000000000ff000000fb0000bbbfbb00bb5bbb0000b50000005500000000000
 -- 228:0000000000032000000d300009ebd320069ebd300009e0000006900000000000
--- 229:000000000000000000000000377a00707b7a0777777a0070aaa0000000000000
+-- 229:000000000000000000377a00007b7a0000777a0000aaa0000000000000000000
 -- 230:000060000066660000696600009999000099e90000eeee0000efee0000ffff00
 -- 231:00000000000ff00000f00f000f0a00d00f0000d000d00d00000dd00000000000
 -- 232:0000b0000bb005b005b00bb0b00000000000000b0bb00b500b500bb0000b0000
@@ -2386,6 +2508,7 @@ end
 -- 244:000000000009000000999000099999000ee9ee000009000000090000000e0000
 -- 245:0000000000aaaa000007aa70000aa77000007700000aa0000000770000000000
 -- 246:b7a0000077a00000aa0000000000000000000000000000000000000000000000
+-- 247:00ffff0000feef0000feef0000feef0000ffff0000feef0000feef0000ffff00
 -- 248:0000000020000020222222202020202020000020020202000222220000000000
 -- 249:0200002020200002023333000032320000333300003030200000320200300020
 -- 250:070000707670076776e77e67077777707a7777f77fafafa707fafa7000777700
