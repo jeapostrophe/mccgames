@@ -56,8 +56,13 @@ player={ spr=260  -- *** change later
 							, i_max=0
 							, i_swim=0
 							, i_rock=0
-							, i_file=0
+							, i_file=10
 							, i_bonus=0
+							, i_poi=0
+							, i_par=0
+							, i_con=0
+							, i_bur=0
+							, i_see=0
 							, flp=false }
 
 mons={}
@@ -470,18 +475,23 @@ function sc_menu()
 end
 
 itms=
-	 { i_hp={480,"Avacado"}
-		, i_rock={481,"TM Rock Break"} --Yep, I do "rock"... get it?
-		, i_swim={482,"TM Swim"}
-		, i_max={483,"Max HP token"}
-		, i_bonus={484,"Power up token"}
-		, i_file={485,"Capture File"} } 
+	 { i_hp={480,"n Avacado"}
+		, i_rock={481," TM Rock Break"}
+		, i_swim={482," TM Swim"}
+		, i_max={483," Mango"}
+		, i_bonus={484," Power up token"}
+		, i_file={485," Capture File"}
+		, i_poi={265, " Poison Antidote"}
+		, i_par={266, " Paralasis Antidote"}
+		, i_con={267, " Headache Pills"}
+		, i_bur={283, " Burn Medication"}
+		, i_see={299, " Glasses"} } 
 
 function act_itm(i)
  return function(room,oi)
 	 room.obj[oi].a=act_msg("Nothing's here")
 	 player[i]=player[i]+1
-		return act_msg("You found a " .. itms[i][2] .. "!")(room,oi)
+		return act_msg("You found a" .. itms[i][2] .. "!")(room,oi)
  end
 end
 
@@ -1055,7 +1065,11 @@ rooms[3]={
 			 x=78,
 				y=23,
 				a=act_msg("'And on todays action news...'")
-			} },
+			},
+			[2]={
+			x=72,
+			y=23,
+			a=act_itm("i_max")}},
 	 ent={
 		 [1]={
 		  px=75,
@@ -1258,7 +1272,7 @@ rooms[9]={
 		[2]={
 		 x=101,
 			y=36,
-			a=act_itm("i_file")
+			a=act_itm("i_poi")
 		} },
 		ent={
 		 [1]={
@@ -1548,7 +1562,7 @@ rooms[16]={
 			[2]={
 			 x=114,
 				y=86,
-				a=act_itm("i_file")
+				a=act_itm("i_see")
 			} },
 		ent={
 		 [1]={
@@ -1644,7 +1658,7 @@ rooms[18]={
 		 [1]={
 			 x=121,
 				y=69,
-				a=act_itm("i_file")
+				a=act_itm("i_bur")
 			} },
 		ent={
 		 [1]={
@@ -1854,7 +1868,7 @@ rooms[25]={
 		 [1]={
 			 x=61,
 				y=87,
-				a=act_itm("i_file")},
+				a=act_itm("i_con")},
 			[2]={
 			 x=66,
 				y=96,
@@ -2311,7 +2325,7 @@ end
 -- 040:00000000011111101dddddd111d1d1d11d1d1d111dddddd10111111000000000
 -- 041:0000000004444440499449944949449449444494499449940444444000000000
 -- 042:0000000002222220266262622622266226622262262626620222222000000000
--- 043:0000000000999900000440000099990000999900009499000099990000000000
+-- 043:0000000000999900000440000099990000944900009449000099990000000000
 -- 044:7700000077000000770000007700000077000000770000007777777767777777
 -- 045:0000000000000000000000000000000000000000000000007777777777777777
 -- 046:0000007700000077000000770000007700000077000000777777777777777776
@@ -2489,7 +2503,7 @@ end
 -- 224:0000000000055000005bb500005bb50005b22b5005b24b5005bbbb5000555500
 -- 225:70000070007070000700f0700770f00002070f70027770700022070000000000
 -- 226:0000000000ffff0000f0f0f00fffff00011ff1100dd11dd00dddddd000000000
--- 227:00000000000ff000000fb0000bbbfbb00bb5bbb0000b50000005500000000000
+-- 227:00000000006669000669ffe02269ffee06699eee06699eeb0066eeb000000000
 -- 228:0000000000032000000d300009ebd320069ebd300009e0000006900000000000
 -- 229:000000000000000000377a00007b7a0000777a0000aaa0000000000000000000
 -- 230:000060000066660000696600009999000099e90000eeee0000efee0000ffff00
