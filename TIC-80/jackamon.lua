@@ -194,7 +194,7 @@ function batItems()
 	 "You tried to look at your items...",
 		batNotReady)
 end
-function batSwitch()
+function batMon()
  batMessage(
 	 "You tried to switch your mon...",
 		batNotReady)
@@ -265,7 +265,7 @@ end
 batMenuTop={ idx=0
 											, opts={ {label="ATTACK",a=batAttack}
 											       , {label="ITEMS",a=batItems}
-																		, {label="SWITCH",a=batSwitch}
+																		, {label="MON",a=batMon}
 																		, {label="RUN",a=batRun} }
 											, back=function() end }
 
@@ -526,10 +526,10 @@ function sc_itms()
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
-function menu_active()
- scene=sc_active
+function menu_mon()
+ scene=sc_mon
 end
-function sc_active()
+function sc_mon()
  draw_explore()
 	
 	local 
@@ -548,16 +548,30 @@ function sc_active()
  end
 	
  if btnp(B_OK) then
-		--- XXX switch to selecting
+  scene=sc_dex
+	 dex={ draw = draw_explore
+ 	    , selected=active_mon
+	     , select = true
+	     , after = function(smn)
+						   if smn then active_mon=smn end
+					 	  scene=sc_mon
+				 	  end }
 	end
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
+dex=nil
 function menu_dex()
  scene=sc_dex
+	dex={ draw = draw_explore
+	    , selected=active_mon
+	    , select = false
+	    , after = function()
+					   scene=sc_menu
+							end }
 end
 function sc_dex()
- draw_explore()
+ dex.draw()
 
 	local 
 	 mx=5*8
@@ -579,17 +593,38 @@ function sc_dex()
 			 sn=monspr(mn)
 			end
 		 spr(sn,mmx,mmy,0)
-			if play_mons[mn] then
+			if (not dex.select and play_mons[mn]) or
+			   (    dex.select and mn == dex.selected) then
 			 spr(502,mmx,mmy,0)
 			end
 		end
 	end
+
+ function move(dx, dy)
+	 if not dex.select then return end
+		local dsx = dex.selected % 16
+		local dsy = dex.selected // 16
+		local ndsx = (dsx + dx) % 16
+		local ndsy = (dsy + dy) % 5
+		--- XXX adjust when there are more mons
+		dex.selected = (ndsy * 16 + ndsx) % 74 
+	end
+	if btnp(0,1,10) then move(0,-1) end
+	if btnp(1,1,10) then move(0,1) end
+	if btnp(2,1,10) then move(-1,0) end
+	if btnp(3,1,10) then move(1,0) end
  	
-	if btnp(B_BACK) then scene=sc_menu end
+	if btnp(B_BACK) then dex.after(nil) end
+	if btnp(B_OK) then 
+	 local sel = dex.selected
+		if seen_mons[sel] then
+ 	 dex.after(sel)
+		end
+	end
 end
 
 menu={{lab="ITEMS",a=menu_itms}
-     ,{lab="ACTIVE",a=menu_active}
+     ,{lab="MON",a=menu_mon}
 					,{lab="DEX",a=menu_dex}}
 
 battle_scrs = {}
