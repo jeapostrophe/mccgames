@@ -219,6 +219,23 @@ function batMon()
 								end
 				 	 end }
 end
+
+function batEvalAttack(rator, ratora, rand, randa, atk, plvl, alive, dead)
+ return function()
+  --- XXX animation
+	 --- XXX effect
+	 --- XXX defense / type
+	 local ratori = ratora[rator]
+	 local randi = randa[rand]
+	 randi.hp = math.max(0, randi.hp - (atk.dmg * plvl))
+		if randi.hp == 0 then
+		 dead()
+		else
+		 alive()
+		end
+	end
+end
+
 function batEnemyTurn()
  local B=battle
  local en=B.en
@@ -226,11 +243,12 @@ function batEnemyTurn()
 	local atks=mi.atks
  local atki=atks[ math.random( #atks ) ]
 	local atk=atki[1]
-	local plvl=atki[2]
+	local power_lvl=atki[2]
 
  batMessage(
 	 "The "..mi.name.." used "..atk.name.."...",
-		batNotReady)
+		batEvalAttack(B.en, B.mons, active_mon, play_mons, atk, power_lvl,
+		 batBackToBattle, batPlayerDead))
 end
 function batNotReady()
 	batMessage(
@@ -244,9 +262,7 @@ function batRun()
    if math.random() <= 0.5 then
     batMessage(
 				 "...and you got away!",
-					function ()
-    		scene=sc_explore
-					end)
+					batOver)
   	else
 			 batMessage(
 				 "...but you couldn't escape!",
@@ -263,11 +279,18 @@ function batMessage(m, after)
  battleSteps[B.step].next=after
 	B.msg=m
 end
+function batBackToBattle()
+ local B=battle
+ B.step="BATTLE"
+	B.t=battleSteps[B.step].t	
+end
 
 function batDoAttack(atk, power_lvl)
+ local B=battle
  batMessage(
 	 "You used "..atk.name.."...",
-		batNotReady)
+		batEvalAttack(active_mon, play_mons, B.en, B.mons, atk, power_lvl,
+		 batEnemyTurn, batEnemyDead))
 end
 function batAttack()
  local B=battle
@@ -290,12 +313,30 @@ function batAttack()
  B.bm=bm
 end
 
+function batPlayerDead()
+ --- XXX switch active_mon
+ batMessage(
+	 "Your "..mons[active_mon].name.." fainted!",
+		batOver)
+end
+function batEnemyDead()
+ local en=battle.en
+	--- XXX do XP
+ batMessage(
+	 "You defeated the "..mons[en].name.."!",
+		batOver)
+end
+
 batMenuTop={ idx=0
 											, opts={ {label="ATTACK",a=batAttack}
 											       , {label="ITEMS",a=batItems}
 																		, {label="MON",a=batMon}
 																		, {label="RUN",a=batRun} }
 											, back=function() end }
+
+function batOver()
+ scene=sc_explore
+end
 
 battle = nil
 function start_battle(mn)
