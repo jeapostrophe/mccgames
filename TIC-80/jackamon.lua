@@ -220,8 +220,16 @@ function batMon()
 				 	 end }
 end
 function batEnemyTurn()
+ local B=battle
+ local en=B.en
+	local mi=mons[en]
+	local atks=mi.atks
+ local atki=atks[ math.random( #atks ) ]
+	local atk=atki[1]
+	local plvl=atki[2]
+
  batMessage(
-	 "The enemy tried to attack...",
+	 "The "..mi.name.." used "..atk.name.."...",
 		batNotReady)
 end
 function batNotReady()
