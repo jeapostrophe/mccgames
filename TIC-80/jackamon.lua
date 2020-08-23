@@ -8,8 +8,6 @@ DEBUG=true
 B_OK=5
 B_BACK=4
 
-ACTIVE_MONS=4
-
 scene=nil
 
 function TIC()
@@ -69,11 +67,13 @@ player={ spr=260  -- *** change later
 mons={}
 play_mons={}
 seen_mons={}
-active_mons={}
+active_mon=nil
 
 function healthy_mons()
- for mn,mi in pairs(active_mons) do
-	 return true
+ for mn,mi in pairs(play_mons) do
+	 if mi.hp > 0 then
+		 return true
+		end
 	end
 	return false
 end
@@ -82,6 +82,9 @@ function get_mon(mn)
  play_mons[mn]= { hp=mons[mn].hp
 	               , xp=mons[mn].xp }
 	seen_mons[mn]=true
+	if active_mon == nil then
+	 active_mon = mn
+	end
 end
 
 function start_explore() 
@@ -91,7 +94,6 @@ function start_explore()
  else
 	  enter_room(1,2)
 			get_mon(3)
-			active_mons[1]=3
 	end
 end
 
@@ -242,7 +244,7 @@ end
 function batAttack()
  local B=battle
  local bm={}
-	local am=active_mons[1]
+	local am=active_mon
 	local mi=mons[am]
 	
 	bm.idx=0
@@ -302,7 +304,7 @@ function sc_battle()
 	 local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
 		map(scr.x, scr.y, 30, 17)
 		
-		local am=active_mons[1]
+		local am=active_mon
 		spr(monspr(B.en), scr.ex*8, scr.ey*8, 0, 4)
 		spr(monspr(am), scr.px*8, scr.py*8, 0, 4)
 		
@@ -476,7 +478,7 @@ function sc_menu()
 end
 
 itms=
-	 { i_hp={480,"an Avacado"}
+	 { i_hp={480,"an Avocado"}
 		, i_rock={481,"TM Rock Break"}
 		, i_swim={482,"TM Swim"}
 		, i_max={483,"a Mango"}
@@ -496,7 +498,7 @@ function act_itm(i)
  end
 end
 
-function start_itms()
+function menu_itms()
  scene=sc_itms
 end
 function sc_itms()
@@ -524,25 +526,11 @@ function sc_itms()
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
-function start_select_active_mon(spot)
- scene=sc_select_active_mon
-	sam_idx=0
-	sam_dest=spot
+function menu_active()
+ scene=sc_active
 end
-function sc_select_active_mon()
+function sc_active()
  draw_explore()
-
-	local i=0
-	local mn=nil
-	for mn_,mi_ in pairs(play_mons) do
-	 mn=mn_
-	 if i == sam_idx then break end
-	 i=i+1
-	end
-	if not mn then
-	 scene=sc_mons
-		return
-	end
 	
 	local 
 	 mx=5*8
@@ -551,60 +539,21 @@ function sc_select_active_mon()
 		mh=5
 	
 	draw_box(mx,my,mw+1,mh+1)
-	spr(400+mn, mx+5, my+5, 0, 4)	
-
- function move(dm)
-	 sam_idx=(sam_idx+dm)%(#play_mons+1)
-	end
-	if btnp(2,1,10) then move(-1) end
-	if btnp(3,1,10) then move(1) end
-
+	if active_mon then
+	 local mn=active_mon
+ 	spr(monspr(mn), mx+5, my+5, 0, 4)
+		--- XXX Jack, adjust to taste	
+		print("HP: "..play_mons[mn].hp, mx+5, my+5+4*8)
+		print("XP: "..play_mons[mn].xp, mx+5, my+5+4*8+8)
+ end
+	
  if btnp(B_OK) then
-	 --- XXX remove mn from other places
-	 active_mons[sam_dest]=mn
-		scene=sc_mons
+		--- XXX switch to selecting
 	end
-	if btnp(B_BACK) then scene=sc_mons end
-end
-
-mons_idx=nil
-function start_mons()
- scene=sc_mons
-	mons_idx=0
-end
-function sc_mons()
- draw_explore()
-
-	local 
-	 mx=5*8
-		my=3*8
-		mw=16
-		mh=(ACTIVE_MONS*2)-1
-	
-	draw_box(mx,my,mw+1,mh+1)
-	for i=0,ACTIVE_MONS-1 do
-	 print((i+1), mx+5+8, my+5+(i*2)*8+4)
-	end
-	for pi,mn in pairs(active_mons) do
-	 local i=pi-1
-	 spr(400+mn, mx+5+8+6, my+i*8, 0, 3.5)
-		print("HP: "..play_mons[mn].hp, mx+5+8+3+8*4, my+8+i*8)
-		print("XP: "..play_mons[mn].xp, mx+5+8+3+8*4, my+8+i*8+8)
-	end
-	
-	spr(285, mx+5, my+5+(mons_idx*2)*8+2)
-
- function move(dm)
-	 mons_idx=(mons_idx+dm)%ACTIVE_MONS
-	end
-	if btnp(0,1,10) then move(-1) end
-	if btnp(1,1,10) then move(1) end
-
- if btnp(B_OK) then start_select_active_mon(mons_idx+1) end
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
-function start_dex()
+function menu_dex()
  scene=sc_dex
 end
 function sc_dex()
@@ -639,9 +588,9 @@ function sc_dex()
 	if btnp(B_BACK) then scene=sc_menu end
 end
 
-menu={{lab="ITEMS",a=start_itms}
-     ,{lab="MONS",a=start_mons}
-					,{lab="DEX",a=start_dex}}
+menu={{lab="ITEMS",a=menu_itms}
+     ,{lab="ACTIVE",a=menu_active}
+					,{lab="DEX",a=menu_dex}}
 
 battle_scrs = {}
 
@@ -2017,9 +1966,6 @@ rooms[29]={
 				e=2
 	  } }
 }
-
-function TODO()
-end
 
 if not DEBUG then
   start_title()
