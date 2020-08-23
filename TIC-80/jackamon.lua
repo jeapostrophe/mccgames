@@ -94,6 +94,7 @@ function start_explore()
  else
 	  enter_room(1,2)
 			get_mon(3)
+			get_mon(1)
 	end
 end
 
@@ -188,6 +189,9 @@ battleSteps["BATTLE"] =
 battleSteps["BATMSG"] = 
  { t = 32
  , next = "BATTLE" }
+battleSteps["BATOVER"] =
+ { t = 1
+	, next = "BATOVER" }
 
 function batItems()
  batMessage(
@@ -195,9 +199,25 @@ function batItems()
 		batNotReady)
 end
 function batMon()
- batMessage(
-	 "You tried to switch your mon...",
-		batNotReady)
+ local B=battle
+	B.step="BATOVER"
+
+ scene=sc_dex
+	dex={ draw = sc_battle
+ 	   , selected=active_mon
+	    , select = true
+	    , after = function(smn)
+						  if smn then 
+								 active_mon=smn
+									scene=sc_battle
+									batMessage(
+									 "You switch to "..mons[smn].name,
+										batEnemyTurn)
+								else
+									scene=sc_battle
+									B.step="BATTLE"
+								end
+				 	 end }
 end
 function batEnemyTurn()
  batMessage(
@@ -300,7 +320,7 @@ function sc_battle()
 		local clear = 0
 		if ( B.t % 32 < 16 ) then clear = 15 end
 		map(trans_mx, trans_my, 30, 17, 0, 0, clear)
-	elseif B.step == "BATTLE" or B.step == "BATMSG" then
+	elseif B.step == "BATTLE" or B.step == "BATMSG" or B.step == "BATOVER" then
 	 local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
 		map(scr.x, scr.y, 30, 17)
 		
@@ -348,6 +368,8 @@ function sc_battle()
 	
 	 if B.step == "BATMSG" then
 		 draw_msg(B.msg, 4*8, 6*8)
+		elseif B.step == "BATOVER" then
+		 local nop=0
 		else	
    function move(dm)
 	   Bm.idx=(Bm.idx+dm)%bmMax
@@ -572,6 +594,11 @@ function menu_dex()
 end
 function sc_dex()
  dex.draw()
+	
+	local these_mons=seen_mons
+	if dex.select then
+	 these_mons=play_mons
+	end
 
 	local 
 	 mx=5*8
@@ -589,7 +616,7 @@ function sc_dex()
 			local mmx=mx+(j+1)*8
 			      mmy=my+(i+1)*8
 			local sn=501
-			if seen_mons[mn] then
+			if these_mons[mn] then
 			 sn=monspr(mn)
 			end
 		 spr(sn,mmx,mmy,0)
@@ -617,7 +644,7 @@ function sc_dex()
 	if btnp(B_BACK) then dex.after(nil) end
 	if btnp(B_OK) then 
 	 local sel = dex.selected
-		if seen_mons[sel] then
+		if these_mons[sel] then
  	 dex.after(sel)
 		end
 	end
