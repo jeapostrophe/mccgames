@@ -30,10 +30,11 @@ BLUE-Numbers/Operations
  
 	>You could probobly use pal()
 	 to switch the pallate or 
-		something, would defenetly
-		save sprites
+		something. Would defenetly
+		consurve sprites
 	
-	>
+	>Mouse sprites may not be 
+	 useable, but still...
 -- <TILES>
 -- 001:0000000001000011010001010100010101000101011101100000000000000000
 -- 002:0000000000110101010101010101011001010101011001010000000000000000
