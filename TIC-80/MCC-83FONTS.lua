@@ -1,6 +1,6 @@
--- title:  game title
--- author: game developer
--- desc:   short description
+-- title:  ???
+-- author: ???
+-- desc:   ???
 -- script: lua
 
 --P.S. If you run this it will break! So DON'T!
