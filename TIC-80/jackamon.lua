@@ -2,8 +2,9 @@
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
---DEBUG=false
-DEBUG=true
+
+DEBUG=false
+--DEBUG=true
 
 B_OK=5
 B_BACK=4
