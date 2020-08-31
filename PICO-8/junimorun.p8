@@ -488,7 +488,7 @@ function init_lv()
  	map_y=0
  	player.x=0
  	player.y=9
-  music(0)
+--  music(0)
  	print("lv 1",96,56,3)
  elseif level==1 then
 	 map_x=0
@@ -508,7 +508,7 @@ function init_lv()
 		player.x=0
 		player.y=54
 		print("lv 4",40,360,3)
-		music(3)
+		--music(3)
 	end
 end
 
