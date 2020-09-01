@@ -51,8 +51,9 @@ roomn=nil
 room=nil
 exitn=nil
 
-player={ spr=260  -- *** change later
-       , i_hp=0
+player={ sprb=256
+       , spr=260  -- *** change later
+							, i_hp=0
 							, i_max=0
 							, i_swim=0
 							, i_rock=0
@@ -155,7 +156,11 @@ function sc_explore()
  			 return
 				end
 			end
-			
+			if not fget(mget(mnx,mny),0) then
+			 p.x=nx
+				p.y=ny
+				p.spr=p.sprb+(((p.spr-p.sprb)+1)%2)
+			end
 			return
 		end
 		--- XXX add a bump sound
