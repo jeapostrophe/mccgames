@@ -2,17 +2,18 @@
 -- author: Balistic Ghoul Studios
 -- desc:   Defend your wall!
 -- script: lua
+function reboot()
+ mapx=0
+ mapy=0
 
-mapx=0
-mapy=0
-
-p={
- x=13.5*8,
- y=14.5*8,
-	tothp=8,
-	curhp=8,
-	spr=256
-}
+ p={
+  x=13.5*8,
+  y=14.5*8,
+	 tothp=7,
+	 curhp=7,
+	 spr=256
+ }
+end
 --Enemy speeds
 --Infintry=1
 --Tank=0.5
@@ -28,6 +29,7 @@ p={
 --Helicopter=3
 --Truck=3
 --Airship=4
+
 function TIC()
 
 	update_psystems()
@@ -45,12 +47,23 @@ function TIC()
  	if btnp(5) then
  		richexplo(p.x+8,p.y-50)
  		p.curhp = math.max(0, p.curhp - 1)
+			mapx=mapx+30
 			if p.curhp == 0 then
 			 richexplo(p.x,p.y)
+				richexplo(p.x+24,p.y)
+				richexplo(p.x-24,p.y)
+				richexplo(p.x+40,p.y)
+				richexplo(p.x-40,p.y)
 			end
   end
   p.spr=256+32*(4 - math.ceil((p.curhp / p.tothp)*4))
  	spr(p.spr,p.x,p.y,0,1,0,0,2,2)
+	else
+		print("GAME OVER",10*8,6*8,15,0,2,1)
+		print("Press X",11*8,8*8,15,0,2,1)
+		if btnp(5) then
+			reboot()
+		end
 	end
 end
 
@@ -525,6 +538,8 @@ function deleteallps()
 		particle_systems[key] = nil
 	end
 end
+
+reboot()
 -- <TILES>
 -- 000:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 -- 001:888800008118000082288888811888888228aaaa8118aaaa8228aaaa8118a888
