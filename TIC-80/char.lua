@@ -320,7 +320,7 @@ rooms[9]=
 													, r=18
 													, e=2 },
 									[2]={ x=14
-									    , y=33
+									    , y=33	
 													, r=1
 													, e=1										 
 										}} }
@@ -394,7 +394,7 @@ function sc_explore()
 			end
 		end
 		end
-		if not fget(mget(mnx,mny),0) then
+		if not fget(mget(			mnx,mny),0) then
 		 p.x=nx
 			p.y=ny
 			p.spr=p.sprb+(((p.spr-p.sprb)+1)%2)
