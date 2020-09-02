@@ -3,9 +3,15 @@
 -- desc:   Defend your wall!
 -- script: lua
 
+mapx=0
+mapy=0
+
 p={
  x=13.5*8,
- y=14.5*8
+ y=14.5*8,
+	tothp=8,
+	curhp=8,
+	spr=256
 }
 --Enemy speeds
 --Infintry=1
@@ -24,16 +30,501 @@ p={
 --Airship=4
 function TIC()
 
---	if btn(0) then p.y=p.y-1 end
---	if btn(1) then p.y=p.y+1 end
+	update_psystems()
+	
 	if btn(2) then p.x=p.x-1 end
 	if btn(3) then p.x=p.x+1 end
 
 	cls(0)
-	map(0,0)
-	spr(256+0//30*2,p.x,p.y,0,1,0,0,2,2)
+
+	map(mapx,mapy)
+
+	draw_psystems()
+
+ if p.curhp > 0 then
+ 	if btnp(5) then
+ 		richexplo(p.x+8,p.y-50)
+ 		p.curhp = math.max(0, p.curhp - 1)
+			if p.curhp == 0 then
+			 richexplo(p.x,p.y)
+			end
+  end
+  p.spr=256+32*(4 - math.ceil((p.curhp / p.tothp)*4))
+ 	spr(p.spr,p.x,p.y,0,1,0,0,2,2)
+	end
 end
 
+--==================================================================================--
+-- PARTICLE SYSTEM LIBRARY =========================================================--
+--==================================================================================--
+
+particle_systems = {}
+
+-- Call this, to create an empty particle system, and then fill the emittimers, emitters,
+-- drawfuncs, and affectors tables with your parameters.
+function make_psystem(minlife, maxlife, minstartsize, maxstartsize, minendsize, maxendsize)
+	local ps = {
+	-- global particle system params
+
+	-- if true, automatically deletes the particle system if all of it's particles died
+	autoremove = true,
+
+	minlife = minlife,
+	maxlife = maxlife,
+
+	minstartsize = minstartsize,
+	maxstartsize = maxstartsize,
+	minendsize = minendsize,
+	maxendsize = maxendsize,
+
+	-- container for the particles
+	particles = {},
+
+	-- emittimers dictate when a particle should start
+	-- they called every frame, and call emit_particle when they see fit
+	-- they should return false if no longer need to be updated
+	emittimers = {},
+
+	-- emitters must initialize p.x, p.y, p.vx, p.vy
+	emitters = {},
+
+	-- every ps needs a drawfunc
+	drawfuncs = {},
+
+	-- affectors affect the movement of the particles
+	affectors = {},
+	}
+
+	table.insert(particle_systems, ps)
+
+	return ps
+end
+
+-- Call this to update all particle systems
+function update_psystems()
+	local timenow = time()
+	for key,ps in pairs(particle_systems) do
+		update_ps(ps, timenow)
+	end
+end
+
+-- updates individual particle systems
+-- most of the time, you don't have to deal with this, the above function is sufficient
+-- but you can call this if you want (for example fast forwarding a particle system before first draw)
+function update_ps(ps, timenow)
+	for key,et in pairs(ps.emittimers) do
+		local keep = et.timerfunc(ps, et.params)
+		if (keep==false) then
+			table.remove(ps.emittimers, key)
+		end
+	end
+
+	for key,p in pairs(ps.particles) do
+		p.phase = (timenow-p.starttime)/(p.deathtime-p.starttime)
+
+		for key,a in pairs(ps.affectors) do
+			a.affectfunc(p, a.params)
+		end
+
+		p.x = p.x + p.vx
+		p.y = p.y + p.vy
+
+		local dead = false
+		if (p.x<0 or p.x>240 or p.y<0 or p.y>136) then
+			dead = true
+		end
+
+		if (timenow>=p.deathtime) then
+			dead = true
+		end
+
+		if (dead==true) then
+			table.remove(ps.particles, key)
+		end
+	end
+
+	if (ps.autoremove==true and #ps.particles<=0) then
+		local psidx = -1
+		for pskey,pps in pairs(particle_systems) do
+			if pps==ps then
+				table.remove(particle_systems, pskey)
+				return
+			end
+		end
+	end
+end
+
+-- draw a single particle system
+function draw_ps(ps, params)
+	for key,df in pairs(ps.drawfuncs) do
+		df.drawfunc(ps, df.params)
+	end
+end
+
+-- draws all particle system
+-- This is just a convinience function, you probably want to draw the individual particles,
+-- if you want to control the draw order in relation to the other game objects for example
+function draw_psystems()
+	for key,ps in pairs(particle_systems) do
+		draw_ps(ps)
+	end
+end
+
+-- This need to be called from emitttimers, when they decide it is time to emit a particle
+function emit_particle(psystem)
+	local p = {}
+
+	local ecount = nil
+	local e = psystem.emitters[math.random(#psystem.emitters)]
+	e.emitfunc(p, e.params)
+
+	p.phase = 0
+	p.starttime = time()
+	p.deathtime = time()+frnd(psystem.maxlife-psystem.minlife)+psystem.minlife
+
+	p.startsize = frnd(psystem.maxstartsize-psystem.minstartsize)+psystem.minstartsize
+	p.endsize = frnd(psystem.maxendsize-psystem.minendsize)+psystem.minendsize
+
+	table.insert(psystem.particles, p)
+end
+
+function frnd(max)
+	return math.random()*max
+end
+
+
+--================================================================--
+-- MODULES =======================================================--
+--================================================================--
+
+-- You only need to copy the modules you actually use to your program
+
+
+-- EMIT TIMERS ==================================================--
+
+-- Spawns a bunch of particles at the same time, then removes itself
+-- params:
+-- num - the number of particle to spawn
+function emittimer_burst(ps, params)
+	for i=1,params.num do
+		emit_particle(ps)
+	end
+	return false
+end
+
+-- Emits a particle every "speed" time
+-- params:
+-- speed - time between particle emits
+function emittimer_constant(ps, params)
+	if (params.nextemittime<=time()) then
+		emit_particle(ps)
+		params.nextemittime = params.nextemittime + params.speed
+	end
+	return true
+end
+
+-- EMITTERS =====================================================--
+
+-- Emits particles from a single point
+-- params:
+-- x,y - the coordinates of the point
+-- minstartvx, minstartvy and maxstartvx, maxstartvy - the start velocity is randomly chosen between these values
+function emitter_point(p, params)
+	p.x = params.x
+	p.y = params.y
+
+	p.vx = frnd(params.maxstartvx-params.minstartvx)+params.minstartvx
+	p.vy = frnd(params.maxstartvy-params.minstartvy)+params.minstartvy
+end
+
+-- Emits particles from the surface of a rectangle
+-- params:
+-- minx,miny and maxx, maxy - the corners of the rectangle
+-- minstartvx, minstartvy and maxstartvx, maxstartvy - the start velocity is randomly chosen between these values
+function emitter_box(p, params)
+	p.x = frnd(params.maxx-params.minx)+params.minx
+	p.y = frnd(params.maxy-params.miny)+params.miny
+
+	p.vx = frnd(params.maxstartvx-params.minstartvx)+params.minstartvx
+	p.vy = frnd(params.maxstartvy-params.minstartvy)+params.minstartvy
+end
+
+-- AFFECTORS ====================================================--
+
+-- Constant force applied to the particle troughout it's life
+-- Think gravity, or wind
+-- params: 
+-- fx and fy - the force vector
+function affect_force(p, params)
+	p.vx = p.vx + params.fx
+	p.vy = p.vy + params.fy
+end
+
+-- A rectangular region, if a particle happens to be in it, apply a constant force to it
+-- params: 
+-- zoneminx, zoneminy and zonemaxx, zonemaxy - the corners of the rectangular area
+-- fx and fy - the force vector
+function affect_forcezone(p, params)
+	if (p.x>=params.zoneminx and p.x<=params.zonemaxx and p.y>=params.zoneminy and p.y<=params.zonemaxy) then
+		p.vx = p.vx + params.fx
+		p.vy = p.vy + params.fy
+	end
+end
+
+-- A rectangular region, if a particle happens to be in it, the particle stops
+-- params: 
+-- zoneminx, zoneminy and zonemaxx, zonemaxy - the corners of the rectangular area
+function affect_stopzone(p, params)
+	if (p.x>=params.zoneminx and p.x<=params.zonemaxx and p.y>=params.zoneminy and p.y<=params.zonemaxy) then
+		p.vx = 0
+		p.vy = 0
+	end
+end
+
+-- A rectangular region, if a particle cames in contact with it, it bounces back
+-- params: 
+-- zoneminx, zoneminy and zonemaxx, zonemaxy - the corners of the rectangular area
+-- damping - the velocity loss on contact
+function affect_bouncezone(p, params)
+	if (p.x>=params.zoneminx and p.x<=params.zonemaxx and p.y>=params.zoneminy and p.y<=params.zonemaxy) then
+		p.vx = -p.vx*params.damping
+		p.vy = -p.vy*params.damping
+	end
+end
+
+-- A point in space which pulls (or pushes) particles in a specified radius around it
+-- params:
+-- x,y - the coordinates of the affector
+-- radius - the size of the affector
+-- strength - push/pull force - proportional with the particle distance to the affector coordinates
+function affect_attract(p, params)
+	if (math.abs(p.x-params.x)+math.abs(p.y-params.y)<params.mradius) then
+		p.vx = p.vx + (p.x-params.x)*params.strength
+		p.vy = p.vy + (p.y-params.y)*params.strength
+	end
+end
+
+-- Moves particles around in a sin/cos wave or circulary. Directly modifies the particle position
+-- params:
+-- speed - the effect speed
+-- xstrength, ystrength - the amplituse around the x and y axes
+function affect_orbit(p, params)
+	params.phase = params.phase + params.speed
+	p.x = p.x + math.sin(params.phase)*params.xstrength
+	p.y = p.y + math.cos(params.phase)*params.ystrength
+end
+
+-- DRAW FUNCS ===================================================--
+
+-- Filled circle particle drawer, the particle animates it's size and color trough it's life
+-- params:
+-- colors array - indexes to the palette, the particle goes trough these in order trough it's lifetime
+-- startsize and endsize is coming from the particle system parameters, not the draw func params!
+function draw_ps_fillcirc(ps, params)
+	for key,p in pairs(ps.particles) do
+		c = math.floor(p.phase*#params.colors)+1
+		r = (1-p.phase)*p.startsize+p.phase*p.endsize
+		circ(p.x,p.y,r,params.colors[c])
+	end
+end
+
+-- Single pixel particle, which animates trough the given colors
+-- params:
+-- colors array - indexes to the palette, the particle goes trough these in order trough it's lifetime
+function draw_ps_pixel(ps, params)
+	for key,p in pairs(ps.particles) do
+		c = math.floor(p.phase*#params.colors)+1
+		pix(p.x,p.y,params.colors[c])
+	end
+end
+
+-- Draws a line between the particle's previous and current position, kind of "motion blur" effect
+-- params:
+-- colors array - indexes to the palette, the particle goes trough these in order trough it's lifetime
+function draw_ps_streak(ps, params)
+	for key,p in pairs(ps.particles) do
+		c = math.floor(p.phase*#params.colors)+1
+		line(p.x,p.y,p.x-p.vx,p.y-p.vy,params.colors[c])
+	end
+end
+
+-- Animates trough the given frames with the given speed
+-- params:
+-- frames array - indexes to sprite tiles
+function draw_ps_animspr(ps, params)
+	params.currframe = params.currframe + params.speed
+	if (params.currframe>#params.frames) then
+		params.currframe = 1
+	end
+	for key,p in pairs(ps.particles) do
+		-- pal(7,params.colors[math.floor(p.endsize)])
+		spr(params.frames[math.floor(params.currframe+p.startsize)%#params.frames],p.x,p.y,0)
+	end
+	-- pal()
+end
+
+-- Maps the given frames to the life of the particle
+-- params:
+-- frames array - indexes to sprite tiles
+function draw_ps_agespr(ps, params)
+	for key,p in pairs(ps.particles) do
+		local f = math.floor(p.phase*#params.frames)+1
+		spr(params.frames[f],p.x,p.y,0)
+	end
+end
+
+-- Each particle is randomly chosen from the given frames
+-- params:
+-- frames array - indexes to sprite tiles
+function draw_ps_rndspr(ps, params)
+	for key,p in pairs(ps.particles) do
+		-- pal(7,params.colors[math.floor(p.endsize)])
+		spr(params.frames[math.floor(p.startsize)],p.x,p.y,0)
+	end
+	-- pal()
+end
+
+
+--==================================================================================--
+-- SAMPLES PARTICLE SYSTEMS ========================================================--
+--==================================================================================--
+
+function make_explosparks_ps(ex,ey)
+	local ps = make_psystem(300,700, 1,2,0.5,0.5)
+	
+	table.insert(ps.emittimers,
+		{
+			timerfunc = emittimer_burst,
+			params = { num = 10}
+		}
+	)
+	table.insert(ps.emitters, 
+		{
+			emitfunc = emitter_point,
+			params = { x = ex, y = ey, minstartvx = -1.5, maxstartvx = 1.5, minstartvy = -1.5, maxstartvy=1.5 }
+		}
+	)
+	table.insert(ps.drawfuncs,
+		{
+			drawfunc = draw_ps_pixel,
+			params = { colors = {15,13,4,15,4,13} }
+		}
+	)
+	table.insert(ps.affectors,
+		{ 
+			affectfunc = affect_force,
+			params = { fx = 0, fy = 0.1 }
+		}
+	)
+end
+
+function make_explosion_ps(ex,ey)
+	local ps = make_psystem(100,500, 9,14,1,3)
+	
+	table.insert(ps.emittimers,
+		{
+			timerfunc = emittimer_burst,
+			params = { num = 4 }
+		}
+	)
+	table.insert(ps.emitters, 
+		{
+			emitfunc = emitter_box,
+			params = { minx = ex-4, maxx = ex+4, miny = ey-4, maxy= ey+4, minstartvx = 0, maxstartvx = 0, minstartvy = 0, maxstartvy=0 }
+		}
+	)
+	table.insert(ps.drawfuncs,
+		{
+			drawfunc = draw_ps_fillcirc,
+			params = { colors = {15,13,4,6,6,2} }
+		}
+	)
+end
+
+function make_smoke_ps(ex,ey)
+	local ps = make_psystem(200,2000, 1,3, 6,9)
+	
+	ps.autoremove = true
+
+	table.insert(ps.emittimers,
+		{
+			timerfunc = emittimer_burst,
+			params = { num = 20 }
+		}
+	)
+	table.insert(ps.emitters, 
+		{
+			emitfunc = emitter_box,
+			params = { minx = ex-4, maxx = ex+4, miny = ey, maxy= ey+2, minstartvx = 0, maxstartvx = 0, minstartvy = 0, maxstartvy=0 }
+		}
+	)
+	table.insert(ps.drawfuncs,
+		{
+			drawfunc = draw_ps_fillcirc,
+			params = { colors = {3,2,1} }
+		}
+	)
+	table.insert(ps.affectors,
+		{ 
+			affectfunc = affect_force,
+			params = { fx = 0.003, fy = -0.009 }
+		}
+	)
+end
+
+function make_explosmoke_ps(ex,ey)
+	local ps = make_psystem(1500,2000, 5,8, 17,18)
+
+	table.insert(ps.emittimers,
+		{
+			timerfunc = emittimer_burst,
+			params = { num = 1 }
+		}
+	)
+	table.insert(ps.emitters, 
+		{
+			emitfunc = emitter_point,
+			params = { x = ex, y = ey, minstartvx = 0, maxstartvx = 0, minstartvy = 0, maxstartvy=0 }
+		}
+	)
+	table.insert(ps.drawfuncs,
+		{
+			drawfunc = draw_ps_fillcirc,
+			params = { colors = {2} }
+		}
+	)
+	table.insert(ps.affectors,
+		{ 
+			affectfunc = affect_force,
+			params = { fx = 0.003, fy = -0.01 }
+		}
+	)
+end
+
+--==================================================================================--
+-- DEMOS ===========================================================================--
+--==================================================================================--
+
+function explo_demo()
+	make_explosion_ps(frnd(220)+10,frnd(116)+10)
+end
+
+function richexplo(rx,ry)
+--	make_explosmoke_ps(rx,ry)
+ make_smoke_ps(rx,ry)
+	make_explosparks_ps(rx,ry)
+	make_explosion_ps(rx,ry)
+end
+
+function smoke_demo()
+	make_smoke_ps(frnd(220)+10,frnd(90)+10)
+end
+
+function deleteallps()
+	for key,ps in pairs(particle_systems) do
+		particle_systems[key] = nil
+	end
+end
 -- <TILES>
 -- 000:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 -- 001:888800008118000082288888811888888228aaaa8118aaaa8228aaaa8118a888
@@ -294,6 +785,8 @@ end
 -- 120:7736666677733663077736630777766700077667000776670000066000000060
 -- 121:6666637736633777366377707667777076677000766770000660000006600000
 -- 122:7000000000000000000000000000000000000000000000000000000000000000
+-- 128:000000000f00000000f00000000f00000000f00000000f00000000ff000000ff
+-- 129:00000000000000f000000f000000f000000f000000f00000ff000000ff000000
 -- 131:0000000000000000000000000000000000000000000000070000000000000007
 -- 132:00060f060006f4f6006333360777777777777733777733377773377b77337bbb
 -- 133:60f000006f4f600063333600777777703377777073337777b7733777b1273377
@@ -302,6 +795,8 @@ end
 -- 136:000604060006fff6006333360777777777777733777733377773377b77337bbb
 -- 137:604000006fff600063333600777777703377777073337777b7733777b1273377
 -- 138:0000000000000000000000000000000000000000700000007000000070000000
+-- 144:000000ff000000ff00000f000000f000000f000000f000000f00000000000000
+-- 145:ff000000ff00000000f00000000f00000000f00000000f00000000f000000000
 -- 147:0000003700033337033333370666366736333367363333673666666703666637
 -- 148:7737eeee7737bbbb7737bbb17737ee127737bbb177377eee77337bbb7733777b
 -- 149:ee127377bbb17377bbbb73771eee7377bbbb7377eee77377bbb73377b7773377
@@ -376,8 +871,8 @@ end
 -- 012:000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500000000000006000500000000000000000000000000000606060000000500
 -- 013:00000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a000000050000000000000606060606000000000000000000000000000b0a0000000500000000000006060606060000000000
 -- 014:000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000000000000000000000000000000000000000000606060606060600000000
--- 015:0101020101020101020101020101020101020101020101020101020101020c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e2e2e2e2e2e2e2e2e2e8c8c9e009c8c8c2e2e2e2e2e2e2e2e2e2e2e2e
--- 016:0303040303040303040303040303040303040303040303040303040303044c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e6e6e6e6e6e6e6e6e6e8d8d8e009d8d8d6e6e6e6e6e6e6e6e6e6e6e6e
+-- 015:0101020101020101020101020101020101020101020101020101020101020c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0c0c1c0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0d0d1d0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e0e0e1e2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2c2c3c2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2d2d3d2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e3e2e2e2e2e8c8c9e0000000000000000000000000000009c8c8c2e2e2e2e2e
+-- 016:0303040303040303040303040303040303040303040303040303040303044c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4c4c5c4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4d4d5d4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e4e4e5e6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6c6c7c6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6d6d7d6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e7e6e6e6e6e8d8d8e0000000000000000000000000000009d8d8d6e6e6e6e6e
 -- </MAP>
 
 -- <WAVES>
