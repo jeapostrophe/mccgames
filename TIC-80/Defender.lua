@@ -2,6 +2,22 @@
 -- author: Balistic Ghoul Studios
 -- desc:   Defend your wall!
 -- script: lua
+
+function valueInRange(value, min, max)
+ return ((value >= min) and (value <= max))
+end
+function rect_inter(A,B)
+ local xOverlap = 
+	 (valueInRange(A.x, B.x, B.x + B.w) or
+   valueInRange(B.x, A.x, A.x + A.w))
+
+ local yOverlap = 
+	 (valueInRange(A.y, B.y, B.y + B.h) or
+   valueInRange(B.y, A.y, A.y + A.h))
+
+ return (xOverlap and yOverlap)
+end
+
 function reboot()
  x=13.5*8
 	y=14.5*8
@@ -19,6 +35,7 @@ function reboot()
 	 spr=256,
 		firet=0
  }
+	ents={}
 	
 	add_Soldier()
 --======================================================--
@@ -86,11 +103,19 @@ function reboot()
 	
 end
 
+function mhit_player(r)
+ local pr={x=p.x,y=p.y,w=2*8,h=2*8}
+ if p.curhp > 0 and rect_inter(r,pr) then
+	 hurt()
+		return true
+	end
+	return false
+end
 function hurt()
  p.curhp = math.max(0, p.curhp - 1)
+	richexplo(p.x,p.y)
 	mapx=mapx+30
 	if p.curhp == 0 then
-		richexplo(p.x,p.y)
 		richexplo(x,y)
 		richexplo(x+24,y)
 		richexplo(x-24,y)
@@ -113,27 +138,53 @@ function draw_ents()
 	 e.draw()
 	end
 end
-function add_bullet(x0, y0, dy)
- local x=x0
-	local y=y0
- local b = 
-	 { draw=function()
-   	 spr(258, x, y, 0)
-		  end
- 	, update=function()
-	    y = y+dy
-		   return not (y < 0 or y > 15*8)
-		  end
-	}
- table.insert(ents, b)
+function add_bullet(x, y, dy)
+ function draw()
+  spr(258, x, y, 0)
+	end
+	function update()
+	 y = y+dy
+		
+		if (y < 0 or y > 15*8) then
+		 return false
+		end
+		local br = { x=x+4, y=y+4, w=2, h=2 }
+		if dy > 0 then
+		 return not mhit_player(br)
+		else
+		 return not mhit_enemy(br)
+		end
+	end
+	table.insert(ents, 
+	 { draw = draw
+	 , update = update })
 end
 
+function mhit_enemy(r)
+	for key,e in pairs(ents) do
+	 if e.collide then
+		 e.collide(r)
+		end
+	end
+end
 function add_enemy(e)
+ local alive=true
+ function collide(r)
+	 local er={x=e.x,y=e.y,w=e.sprs*8,h=e.sprs*8}
+	 if rect_inter(r,er) then
+	  richexplo(r.x, r.y)
+		 e.hp=e.hp-1
+			if e.hp == 0 then
+			 alive=false
+			end
+		end
+	end
  function draw()
-	 spr(e.spr, e.x, e.y, 0)
+	 spr(e.spr, e.x, e.y, 0, 1, 0, 0, e.sprs, e.sprs)
 	end
 	local shotT = e.shotT
 	function update()
+	 if not alive then return false end
 	 e.x = e.x + e.dx
 		e.y = e.y + e.dy
 		if shotT == 0 then
@@ -141,9 +192,12 @@ function add_enemy(e)
 		 add_bullet(e.x, e.y, 1)
 		else
 		 shotT = shotT - 1
-		end 
+		end
 	end
-	table.insert(ents, { draw = draw, update = update })
+	table.insert(ents, 
+	 { collide = collide
+		, draw = draw
+	 , update = update })
 end
 
 function add_Soldier()
@@ -173,10 +227,6 @@ function TIC()
 	 p.x=p.x+1 
 	--	sfx(2)
 	end
-	
-	if false then
-	 richexplo(p.x+8,p.y-50)
- end
 
 	cls(0)
 
@@ -1071,6 +1121,10 @@ reboot()
 -- 002:03000300f30003000300f30003000300f30003000300f30003000300f30003000300f30003000300f30003000300f30003000300f30003000300f300407000000000
 -- 003:00f800f7f0e8f0e7f0d820d720c0f0c0f0b0f0b040a040a0f090f09060806080f070f07080608060f050f050a040a040f030f030c020c020f010f010b77000000006
 -- </SFX>
+
+-- <FLAGS>
+-- 000:00000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- </FLAGS>
 
 -- <PALETTE>
 -- 000:000000bcb19f847f7f5a5a63cead73a5845a3e3d4c21263f6b7b393a533984ad424063b26c4f40673347394071c0461f
