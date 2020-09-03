@@ -24,7 +24,8 @@ function reboot()
 		spd=1,
 		spr=10,
 		hp=1,
-		shotT=60
+		shotT=60,
+		sprs=1
 	}
 	
 	SpecialForces={
@@ -33,7 +34,8 @@ function reboot()
 		spd=1,
 		spr=9,
 		hp=1,
-		shotT=60
+		shotT=60,
+		sprs=1
 	}
 	
 	Tank={
@@ -42,7 +44,8 @@ function reboot()
 		spd=0.5,
 		spr=1,
 		hp=3,
-		shotT=120
+		shotT=120,
+		sprs=2
 	}
 	
 	HeavyTank={
@@ -51,7 +54,8 @@ function reboot()
 		spd=1,
 		spr=5,
 		hp=3,
-		shotT=60
+		shotT=60,
+		sprs=2
 	}
 	
 	Helicopter={
@@ -60,7 +64,8 @@ function reboot()
 		spd=0.75,
 		spr=97,
 		hp=3,
-		shotT=60
+		shotT=60,
+		sprs=2
 	}
 	
 	Truck={
@@ -78,7 +83,8 @@ function reboot()
 		spd=0.25,
 		spr=259,
 		hp=4,
-		shotT=180
+		shotT=180,
+		sprs=4
 	}
 	
 end
