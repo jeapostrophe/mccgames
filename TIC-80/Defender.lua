@@ -19,18 +19,11 @@ function reboot()
 	 spr=256,
 		firet=0
  }
+	
+	add_Soldier()
 --======================================================--
 --=================ENEMY TABLES=========================--
 --======================================================--
-	Soldier={
-	-- x=math.random(0,29*8)
-		y=0,
-		spd=1,
-		spr=10,
-		hp=1,
-		shotT=60,
-		sprs=1
-	}
 	
 	SpecialForces={
 	-- x=math.random(0,29*8)
@@ -106,31 +99,68 @@ function hurt()
 	end
 end
 
-bullets={}
-function update_bullets()
-	for key,b in pairs(bullets) do
-	 b.y = b.y+b.dy
-		if b.y < 0 or b.y > 15*8 then
-		 table.remove(bullets,key)
+ents={}
+function update_ents()
+	for key,e in pairs(ents) do
+	 local keep=e.update()
+		if keep == false then
+		 table.remove(ents,key)
 		end
 	end
 end
-function draw_bullets()
-	for key,b in pairs(bullets) do
-	 spr(258, b.x, b.y, 0)
+function draw_ents()
+	for key,e in pairs(ents) do
+	 e.draw()
 	end
 end
-function bullets_add(x, y)
+function add_bullet(x0, y0, dy)
+ local x=x0
+	local y=y0
  local b = 
-	 { x = x
-		, y = y
-		, dy = -1 }
- table.insert(bullets, b)
+	 { draw=function()
+   	 spr(258, x, y, 0)
+		  end
+ 	, update=function()
+	    y = y+dy
+		   return not (y < 0 or y > 15*8)
+		  end
+	}
+ table.insert(ents, b)
+end
+
+function add_enemy(e)
+ function draw()
+	 spr(e.spr, e.x, e.y, 0)
+	end
+	local shotT = e.shotT
+	function update()
+	 e.x = e.x + e.dx
+		e.y = e.y + e.dy
+		if shotT == 0 then
+		 shotT = e.shotT
+		 add_bullet(e.x, e.y, 1)
+		else
+		 shotT = shotT - 1
+		end 
+	end
+	table.insert(ents, { draw = draw, update = update })
+end
+
+function add_Soldier()
+ add_enemy(
+	 { x=math.random(0,29*8)
+		, y=0
+		, dx=0
+		, dy=0.05
+ 	, spr=10
+		, hp=1
+		, shotT=60
+		, sprs=1 })
 end
 
 function TIC()
 	update_psystems()
-	update_bullets()
+	update_ents()
 	if p.firet > 0 then
  	p.firet = p.firet - 1
 	end
@@ -153,11 +183,11 @@ function TIC()
 	map(mapx,mapy)
 
 	draw_psystems()
-	draw_bullets()
+	draw_ents()
 
  if p.curhp > 0 then
  	if p.firet == 0 and btn(5) then
-		 bullets_add(p.x + 4, p.y - 5)
+		 add_bullet(p.x + 4, p.y - 5, -1)
 			p.firet = 30
   end
   p.spr=256+32*(4 - math.ceil((p.curhp / p.tothp)*4))
