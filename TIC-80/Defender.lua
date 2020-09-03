@@ -89,11 +89,11 @@ function TIC()
 	
 	if btn(2) then 
 	 p.x=p.x-1
-		sfx(2)
+	--	sfx(2)
 	end
 	if btn(3) then 
 	 p.x=p.x+1 
-		sfx(2)
+	--	sfx(2)
 	end
 
 	cls(0)
