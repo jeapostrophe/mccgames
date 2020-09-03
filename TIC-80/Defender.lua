@@ -42,58 +42,55 @@ function reboot()
 --======================================================--
 	
 	SpecialForces={
-	-- x=math.random(0,29*8)
+	 x=math.random(0,29*8),
 		y=0,
-		spd=1,
+		dx=0,
+		dy=0.05,
 		spr=9,
 		hp=1,
-		shotT=60,
+		shotT=120,
 		sprs=1
 	}
 	
-	Tank={
-	-- x=math.random(0,29*8)
+	
+	HeavyTank={
+	 x=math.random(0,29*8),
 		y=0,
-		spd=0.5,
-		spr=1,
+		dx=0,
+		dy=0.05,
+		spr=5,
+		hp=3,
+		shotT=180,
+		sprs=2
+	}
+	
+	Helicopter={
+	 x=math.random(0,29*8),
+		y=0,
+		dx=0,
+		dy=0.05,
+		spr=97,
 		hp=3,
 		shotT=120,
 		sprs=2
 	}
 	
-	HeavyTank={
-	-- x=math.random(0,29*8)
-		y=0,
-		spd=1,
-		spr=5,
-		hp=3,
-		shotT=60,
-		sprs=2
-	}
-	
-	Helicopter={
-	-- x=math.random(0,29*8)
-		y=0,
-		spd=0.75,
-		spr=97,
-		hp=3,
-		shotT=60,
-		sprs=2
-	}
-	
 	Truck={
-	-- y=math.random(0,16*8),
+	 y=math.random(0,16*8),
 		x=28,
-		spd=0.75,
+		dy=0,
+		dx=0.75,
 		spr=101,
 		hp=3,
-		shotT=0
+		shotT=0,
+		sprs=2
 	}
 	
 	Airship={
-	-- x=math.random(0,29*8)
+	 x=math.random(0,29*8),
 		y=0,
-		spd=0.25,
+		dx=0,
+		dy=0.02,
 		spr=259,
 		hp=4,
 		shotT=180,
@@ -207,11 +204,24 @@ function add_Soldier()
 		, dy=0.05
  	, spr=10
 		, hp=1
-		, shotT=60
+		, shotT=120
 		, sprs=1 })
 end
 
-ENEMY_RATE=120
+function add_Tank()
+ add_enemy(
+	{ x=math.random(0,29*8),
+		 y=0,
+		 dx=0,
+		 dy=0.05,
+		 spr=1,
+		 hp=3,
+		 shotT=120,
+		 sprs=2
+	})
+end
+
+ENEMY_RATE=180
 function TIC()
 	update_psystems()
 	update_ents()
