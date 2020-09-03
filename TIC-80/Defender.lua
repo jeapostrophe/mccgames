@@ -36,8 +36,7 @@ function reboot()
 		firet=0
  }
 	ents={}
-	
-	add_Soldier()
+ enemy_timer=0
 --======================================================--
 --=================ENEMY TABLES=========================--
 --======================================================--
@@ -212,12 +211,19 @@ function add_Soldier()
 		, sprs=1 })
 end
 
+ENEMY_RATE=120
 function TIC()
 	update_psystems()
 	update_ents()
 	if p.firet > 0 then
  	p.firet = p.firet - 1
 	end
+	if enemy_timer == 0 then
+	 add_Soldier()
+		enemy_timer=ENEMY_RATE
+	else
+	 enemy_timer = enemy_timer - 1
+ end
 	
 	if btn(2) then 
 	 p.x=p.x-1
