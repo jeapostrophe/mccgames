@@ -43,10 +43,9 @@ function reboot()
 		{st=280, it=240, c=5, f=add_SpecialForces},
 		{st=360, it=360, c=3, f=add_HeavyTank},
 		{st=420, it=420, c=3, f=add_Helicopter},
-		{st=240, it=480, c=2, f=add_Truck},
+		{st=240, it=480, c=1, f=add_Truck},
 		{st=540, it=540, c=1, f=add_Airship},
 	}
-
 end
 
 function mhit_player(r)
@@ -122,6 +121,7 @@ function add_enemy(e)
 		 e.hp=e.hp-1
 			if e.hp == 0 then
 			 alive=false
+				score=score+10
 			end
 		end
 	end
@@ -131,6 +131,7 @@ function add_enemy(e)
 	local shotT = e.shotT
 	function update()
 	 if not alive then return false end
+		should_reboot=false
 	 e.x = e.x + e.dx
 		e.y = e.y + e.dy
 		if shotT then
@@ -175,7 +176,7 @@ end
 
 function add_Tank()
  add_enemy(
-	{ x=math.random(0,29*8),
+	{ x=math.random(0,27*8),
 		 y=0,
 		 dx=0,
 		 dy=0.05,
@@ -188,7 +189,7 @@ end
 
 function add_HeavyTank()
  add_enemy(
-	{x=math.random(0,29*8),
+	{x=math.random(0,27*8),
 		y=0,
 		dx=0,
 		dy=0.05,
@@ -201,7 +202,7 @@ end
 
 function add_Helicopter()
  add_enemy(
-	{x=math.random(0,29*8),
+	{x=math.random(0,27*8),
 		y=0,
 		dx=0,
 		dy=0.05,
@@ -214,10 +215,10 @@ end
 
 function add_Truck()
  add_enemy(
-	{y=math.random(0,16*8),
+	{y=math.random(0,11*8),
 		x=28,
 		dy=0,
-		dx=0.75,
+		dx=0.25,
 		spr=101,
 		hp=3,
 		shotT=nil,
@@ -227,7 +228,7 @@ end
 
 function add_Airship()
  add_enemy(
-	{x=math.random(0,29*8),
+	{x=math.random(0,25*8),
 		y=0,
 		dx=0,
 		dy=0.02,
@@ -238,13 +239,20 @@ function add_Airship()
 	})
 end
 
+should_reboot=nil
+score=0
 function TIC()
+ should_reboot=true
+	
 	update_psystems()
 	update_ents()
 	if p.firet > 0 then
  	p.firet = p.firet - 1
 	end
 	for key,t in pairs(timers) do
+		if t.c > 0 then
+			should_reboot=false
+		end
 	 if t.t then
 		 if t.c > 0 then
 		  if t.t==0 then
@@ -271,6 +279,7 @@ function TIC()
 	cls(0)
 
 	map(mapx,mapy)
+	 print("Score:"..score,0,0,7,0,1,1)
 	
 	if msgtim > 0 then
 	 print("Incoming Wave!",8*8,6*8,8,0,2,1)
@@ -289,10 +298,15 @@ function TIC()
 	else
 		print("GAME OVER",10*8,6*8,15,0,2,1)
 		print("Press X",11*8,8*8,15,0,2,1)
+		print("Highscore:"..score,10*8,10*8,15,0,1,1)
 		if btnp(5) then
 			reboot()
 		end
 	end
+	
+	if should_reboot then
+		reboot()
+ end
 end
 
 --==================================================================================--
