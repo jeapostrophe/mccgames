@@ -1,7 +1,19 @@
 -- title:  Defender
 -- author: Balistic Ghoul Studios
--- desc:   Defend your wall!
+-- desc:   Defend your wall, and don't get shot!
 -- script: lua
+
+function TODO()
+ 
+	-- --
+	--Make enemy Ivonerible time--
+	--Make enemy change sprites when hurt--
+	--Fix up score feature--
+	--Make enemy disapear when it leaves the screen--
+	--Make enemys turn into other enemys when destroyed--
+	-- --
+	
+end
 
 function valueInRange(value, min, max)
  return ((value >= min) and (value <= max))
@@ -298,7 +310,7 @@ function TIC()
 	else
 		print("GAME OVER",10*8,6*8,15,0,2,1)
 		print("Press X",11*8,8*8,15,0,2,1)
-		print("Highscore:"..score,10*8,10*8,15,0,1,1)
+		print("Score:"..score,10*8,10*8,15,0,1,1)
 		if btnp(5) then
 			reboot()
 		end
