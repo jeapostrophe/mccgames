@@ -328,8 +328,8 @@ rooms[9]=
 roomn=nil
 room=nil
 
-player={sprb=510
-       , spr=510	} -- *** change later
+player={sprb=292
+       , spr=293	} -- *** change later
 
 function start_game() 
  scene=sc_explore
