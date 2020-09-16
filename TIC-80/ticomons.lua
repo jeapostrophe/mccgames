@@ -1,0 +1,97 @@
+-- title:  game title
+-- author: game developer
+-- desc:   short description
+-- script: lua
+
+t=0
+x=96
+y=24
+
+function TIC()
+
+	if btn(0) then y=y-1 end
+	if btn(1) then y=y+1 end
+	if btn(2) then x=x-1 end
+	if btn(3) then x=x+1 end
+
+	cls(13)
+	spr(1+t%60//30*2,x,y,14,3,0,0,2,2)
+	print("HELLO WORLD!",84,84)
+	t=t+1
+end
+
+-- <TILES>
+-- 001:eccccccccc222222c0000000c0222222c0ccccccc0cc0cccc0cc0cccc0cc0ccc
+-- 002:cccccec22222cc2c00000cc222200cecccc00ccc0cc00c0c0cc00c0c0cc00c0c
+-- 003:eccccccccc222222c0000000c0222222c0ccccccc0cc0cccc0cc0cccc0cc0ccc
+-- 004:cccccec22222cc2c00000cc222200cecccc00ccc0cc00c0c0cc00c0c0cc00c0c
+-- 017:c0ccccccc0000000c0000000c0000000c0000000c2222222ccc000cceecccccc
+-- 018:ccc000cc00000cce00000cee00000cee00000cee2222ccee000cceeecccceeee
+-- 019:c0ccccccc0000000c0000000c0000000c0000000c2222222cc000cc0eccccccc
+-- 020:ccc000cc00000cce00000cee00000cee00000cee2222ccee00ccceeeccceeeee
+-- 033:eccccccccc111111c2222222c2111111c2ccccc3c2c2c233c2c22233c2cc2cc3
+-- 034:ccccceee1111ccee22220cee11120ceec3c20ccc33320c0c33320c0c33c20c0c
+-- 035:eccccccccc111111c2222222c2111111c2c3c3ccc2333332c2333332c2c333cc
+-- 036:ccccceee1111ccee22220cee11120ceeccc20cccc2c20c0c22c20c0c2cc20c0c
+-- 049:c2ccccccc2222222c222ccccc222ccccc222222cc1111111cc000cccecccccec
+-- 050:3cc200cc22220ccec2220ceec2220cee22220cee1111ccee000cceeecccceeee
+-- 051:c2cc3cccc2222222c222ccccc222ccccc222222cc111111ccc000cccecccccec
+-- 052:ccc200cc22220ccec2220ceec2220cee22220cee1111ccee000cceeecccceeee
+-- 065:eccccccccc666666c5555555c5666666c5cc0cccc5cc00c0c5cc0cccc5cc0ccc
+-- 066:ccccceee6666ccee55550cee66650cee0cc50ccc0cc50c0c0cc50c0c0cc50c0c
+-- 067:eccccccccc666666c5555555c5666666c5cc0cccc5cc00c0c5cc0cccc5cc0ccc
+-- 068:ccccceee6666ccee55550cee66650cee0cc50ccc0cc50c0c0cc50c0c0cc50c0c
+-- 081:c5ccccccc5555555c5555cccc555c525c5555525c6666262cc000cccecccccec
+-- 082:ccc500cc55550cc655550c65c5556655555555566666556c000c66ccccccccce
+-- 083:c5ccccccc5555555c5555cccc555c525c5555252c6666666cc000cccecccccec
+-- 084:ccc500cc55550cc655550c65c5556655555555566666556c000c66ccccccccce
+-- 097:eccccccccc222222c7777777c7222222c73ccc33c7ccccc3c7ccfcc3c7ccccc3
+-- 098:ccccceee2222ccee77776cee22276cee3c376ccccfc76c6c3c376c6c33376c6c
+-- 099:eccccccccc222222c7777777c7222222c73c333cc7cfc3ccc73c33ccc73333cc
+-- 100:ccccceee2222ccee77776cee22276ceecc376cccccc76c6cfcc76c6cccc76c6c
+-- 113:c73ccc33c7777777c777c7c7c7777c7cc7777777c3333333cc666cccecccccec
+-- 114:333766cc77776ccec7776cee77776cee77776cee3333ccee666cceeecccceeee
+-- 115:c733333cc7777777c777c7c7c7777c7cc7777777c3333333cc666cccecccccec
+-- 116:cc3766cc77776ccec7776cee77776cee77776cee3333ccee666cceeecccceeee
+-- 129:ecccccccccffffffcdddddddcdffffffcdcccccccdc0c0c0cdc0c0c0cdc0c0c0
+-- 130:ccccc22cffff2cc2dddd0cecfffd0ceecccd0cccc0cd0c0cc0cd0c0cc0cd0c0c
+-- 131:ecccccccccffffffcdddddddcdffffffcdcccccccdc0c0c0cdc0c0c0cdc0c0c0
+-- 132:ccccceecffff2cc2dddd022cfffd0ccecccd0cccc0cd0c0cc0cd0c0cc0cd0c0c
+-- 145:cdc0c0c0cdc0c0c0cddcc0c0cdddcccccdddddddcfffffffcc000cccecccccec
+-- 146:c0cd00ccc0cd0cceccdd0ceecddd0ceedddd0ceeffffccee000cceeecccceeee
+-- 147:cdc0c0c0cdc0c0c0cddcc0c0cdddcccccdddddddcfffffffcc000cccecccccec
+-- 148:c0cd00ccc0cd0cceccdd0ceecddd0ceedddd0ceeffffccee000cceeecccceeee
+-- 161:eccccccccc222222c3333333c3222222c3ccccc0c3c000ccc3cc0cccc3cc0ccc
+-- 162:ccccceee2222ccee33330cee22230cee00c30ccc0cc30c0c0cc30c0c0cc30c0c
+-- 163:eccccccccc222222c3333333c3222222c3ccccccc3c000c0c3cc0cccc3cc0ccc
+-- 164:ccccceee2222ccee33330cee22230ceeccc30ccc00c30c0c0cc30c0c0cc30c0c
+-- 177:c3ccccccc3333333c3333333c333ccccc3333333c2222222cc000cccecccccec
+-- 178:ccc300cc33330cce33330ceec3330cee33330cee2222ccee000cceeecccceeee
+-- 179:c3ccccccc3333333c3333333c333ccccc3333333c2222222cc000cccecccccec
+-- 180:ccc300cc33330cce33330ceec3330cee33330cee2222ccee000cceeecccceeee
+-- 193:eccccccccc999999c8888888c8999999c8cc0cccc8cc00c0c8cc0cccc8cc0ccc
+-- 194:ccccceee9999ccee88880cee99980cee0cc80ccc0cc80c0c0cc80c0c0cc80c0c
+-- 195:eccccccccc999999c8888888c8999999c8ccccccc8cc0cccc8cc20c0c8cc2ccc
+-- 196:ccc2c2cc9922c22c88880ccc9922022cccc202cc0cc80c0c2cc80c0c2cc80c0c
+-- 209:c8ccccccc8888888c8888888c888ccccc8888888c9999999cc000cccecccccec
+-- 210:ccc800cc88880ccec8880cee88880cee88880cee9999ccee000cceeecccceeee
+-- 211:c8ccccccc8888888c888cdcdc888dcdcc8888888c9999999cc000cccecccccec
+-- 212:ccc800cc88880ccec8880ceed8880cee88880cee9999ccee000cceeecccceeee
+-- 225:ee9999eeeaaaaa0eeafcfa0eeafcfa00eaaaaa0eeaccca0ee999990ee00e00ee
+-- 226:ee9999eeeaaaaa0eeaccca0eeafcfa00eaaaaa0eeaccca0ee999990ee00e00ee
+-- </TILES>
+
+-- <WAVES>
+-- 000:00000000ffffffff00000000ffffffff
+-- 001:0123456789abcdeffedcba9876543210
+-- 002:0123456789abcdef0123456789abcdef
+-- </WAVES>
+
+-- <SFX>
+-- 000:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000304000000000
+-- </SFX>
+
+-- <PALETTE>
+-- 000:000000814085b13e53ef6557ffcaa1a7f07038b764ffe60429366f3b5dc941a6f673eff7f4f4f494b0c2ae6900333c57
+-- </PALETTE>
+
