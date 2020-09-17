@@ -36,8 +36,8 @@ function _init()
 	}
 	
 	--cheat switch
-	--cheatmode=false
-	cheatmode=true
+	cheatmode=false
+	--cheatmode=true
 
  mob_kinds={}
  
