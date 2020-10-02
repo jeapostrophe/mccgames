@@ -127,6 +127,7 @@ function TIC()
 	elseif c==900 then --Treasue Cave
 	 wrl=132
 		enemy=294
+		col=8
 	elseif c==1000 then --Hive
 	 wrl=136
 		enemy=360
