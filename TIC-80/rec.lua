@@ -3,7 +3,6 @@
 -- desc:   short description
 -- script: lua
 
-t=0
 x=8
 y=12*8
 s=288
@@ -41,9 +40,9 @@ function TIC()
 	 end
 	end
 	
---	if btnp(4) then 
+ --if btnp(4) then 
 	 --Interact
---	end
+ --end
 	
 	cls(0)
 	map(0,0)
@@ -64,8 +63,6 @@ function TIC()
 	spr(itmspr,ix+40,iy)
 	
 	--print("10",ix+8,iy+8,12,0,1,1)
-	
-	t=t+1
 end
 
 -- <TILES>
