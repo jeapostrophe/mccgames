@@ -1,4 +1,4 @@
--- title:  REC
+-- title:  R.E.C.
 -- author: Balistic Ghoul Studios
 -- desc:   short description
 -- script: lua
