@@ -3,6 +3,9 @@
 -- desc:   ???
 -- script: lua
 
+function TIC()
+end
+
 --P.S. If you run this it will break! So DON'T!
 
 --NO CODE JUST SPRITES!!
