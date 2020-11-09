@@ -3,21 +3,22 @@
 -- desc:   short description
 -- script: lua
 
-t=0
-x=96
-y=24
-
+x=227*8
+y=16*8
+mx=216
+my=7
+sync(5,2,false)
 function TIC()
 
-	if btn(0) then y=y-1 end
-	if btn(1) then y=y+1 end
-	if btn(2) then x=x-1 end
-	if btn(3) then x=x+1 end
+	if btnp(0,0,10) then y=y-8 my=my-1 end
+	if btnp(1,0,10) then y=y+8 my=my+1 end
+	if btnp(2,0,10) then x=x-8 mx=mx-1 end
+	if btnp(3,0,10) then x=x+8 mx=mx+1 end
 
-	cls(13)
-	spr(259,x,y,0)
-	print("WHERE IS MY HAT?! ",84,84)
-	t=t+1
+	cls(0)
+	map(mx,my)
+	spr(8,x-mx*8,y-my*8,0)
+	--print("WHERE IS MY HAT?! ",84,84)
 end
 
 -- <TILES>
