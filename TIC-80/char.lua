@@ -7,6 +7,8 @@ DEBUG=false
 
 scene=nil
 
+sync(0,7)
+
 function TIC()
  scene()
 end
