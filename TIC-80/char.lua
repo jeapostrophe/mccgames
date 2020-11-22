@@ -3,7 +3,7 @@
 -- desc:   Your a young bunny with a taste for adventure! Go on quests to unlock tech!
 -- script: lua
 
-DEBUG=false		
+DEBUG=false
 
 scene=nil
 
@@ -120,7 +120,7 @@ rooms[7]=
 rooms[6]=
  { mx=150
 	, my=0
-, mobs={ [1]={ mx=15	
+ , mobs={ [1]={ mx=152	
 	             , my=7
 														, ms=402
 														, mitm=1 } }	
@@ -173,7 +173,7 @@ rooms[4]=
 													, r=5
 													, e=2 },
 									[2]={ x=90
-									    , y=6
+										    , y=6
 													, r=13
 													, e=1										 
 										}} }
@@ -348,6 +348,23 @@ items={}
 items[0]=
  { spr=368
 	, name="water suit" }
+items[1]=
+ { spr=369
+	, name="turnip suit" }
+items[2]=
+ { spr=370
+	, name="flying suit" }
+items[3]=
+ { spr=371
+	, name="rock suit" }
+items[4]=
+ { spr=372
+	, name="carrot suit" }
+items[5]=
+ { spr=267
+	, w=2
+	, h=2
+	, name="tech carrot" }
 
 roomn=nil
 room=nil
@@ -360,7 +377,7 @@ player={ sst=0
 function start_game() 
  scene=sc_explore
 	if DEBUG then
-	 enter_room(15,1)
+	 enter_room(14,1)
 	else
   enter_room(1,1)
 	end
@@ -381,7 +398,14 @@ function sc_explore()
 
  if room.mobs then
  for mn,mi in pairs(room.mobs) do
-	 if mi.dead then goto continue end
+	 if mi.dead then
+		 if mi.mitm then
+				local i=items[mi.mitm]
+				local iw=i.w or 1
+				local ih=i.h or 1
+			 spr(i.spr, mi.px, mi.py, 11, 1, 0, 0, iw, ih)
+   end
+		else
 	 if not mi.t then mi.t = 0 end
 		mi.px=(mi.mx-room.mx)*8
 		mi.py=(mi.my-room.my)*8
@@ -418,15 +442,29 @@ function sc_explore()
 		else
 		 mi.t = mi.t - 1
 		end
-		::continue::
+		end
 	end
  end
 
 	for sn,si in pairs(shots) do
-		spr(320, si.x, si.y, 11)
+	 local fi=0 ri=	0
+		if si.dx > 0 then
+			fi=1
+		elseif si.dy < 0 then
+			ri=1
+		elseif si.dy > 0 then
+		 ri=3
+		end	
+		spr(320, si.x, si.y, 11, 1, fi, ri)
 		local die = false
-		si.x=si.x-1
-		if si.x < 0 then die = true end
+		si.x=si.x+si.dx
+		si.y=si.y+si.dy
+		if si.x < 0 or 
+				 si.y < 0 or
+					si.x > 240 or
+					si.y > 136 then
+			die = true
+		end
 		if fget(mget(room.mx+(si.x//8), room.my+(si.y//8)),0) then
 			die = true
 		end
@@ -453,6 +491,8 @@ function sc_explore()
 	spr(cspr,p.x*8,p.y*8,11)
 	
 	function move(dx,dy)
+	 p.sdx=dx
+		p.sdy=dy
 	 nx=p.x+dx
 		ny=p.y+dy
 		mnx=room.mx+nx
@@ -477,7 +517,7 @@ function sc_explore()
 	if p.sst > 0 then
 		p.sst = p.sst - 1
 		if p.sst == 0 then
-			table.insert(shots, {x=p.x*8, y=p.y*8})
+			table.insert(shots, {x=p.x*8, y=p.y*8, dx=p.sdx, dy=p.sdy})
 		end
 	else
 	 if btnp(5,1,10) then p.sst = 30 end
