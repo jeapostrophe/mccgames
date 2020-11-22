@@ -120,7 +120,7 @@ function _init()
 	objs={}
 	
 	gravity=0.1
-	friction=3698
+	friction=0
 	
 	--simple camera
 	cam_x=0
