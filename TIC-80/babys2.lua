@@ -3,58 +3,661 @@
 -- desc:   short description
 -- script: lua
 
-function clamp(min, x, max)
-	if x < min then return min end
-	if x > max then return max end
+function foreach(t, f)
+ for k,v in pairs(t) do
+	 f(v)
+	end
+end
+function abs(x)
+ if x < 0 then return -1*x end
 	return x
 end
+function clamp(sm,x,lg)
+ if x < sm then return sm end
+	if x > lg then return lg end
+	return x
+end
+cx=0
+cy=0
+function camera(nx, ny)
+ cx=nx
+	cy=ny
+end
+function _map(x,y)
+ x=x+cx/8
+	y=y
+	w=30+1
+	h=17+1
+	sx=-1-cx%8
+	sy=0
 
-TIC=nil
-
-function max_init()
-	x=227*8
-	y=16*8
-	mx=216
-	my=7
-	sync(5,2,false)
-	function max_TIC()
-		if btnp(0,0,10) then y=y-8 my=my-1 end
-		if btnp(1,0,10) then y=y+8 my=my+1 end
-		if btnp(2,0,10) then x=x-8 mx=mx-1 end
-		if btnp(3,0,10) then x=x+8 mx=mx+1 end
-
-		cls(0)
-		map(mx,my)
-		spr(8,x-mx*8,y-my*8,0)
-	end
-	TIC=max_TIC
+ map(x,y,w,h,sx,sy)
+end
+function _spr(id, x, y, colorkey, scale, flip, rotate, w, h)
+ x=x-cx
+	y=y-cy
+ colorkey=colorkey or -1
+	scale=scale or 1
+	flip=flip or 0
+	rotate=rotate or 0
+	w=w or 1
+	h=h or 1
+ spr(id, x, y, colorkey, scale, flip, rotate, w, h)
+end
+function _print(text, x, y, color, fixed, scale, smallfont)
+ x=x or 0
+	y=y or 0
+	x=x-cx
+	y=y-cy
+	color=color or 15
+	fixed=fixed or false
+	scale=scale or 1
+	smallfont=smallfont or false
+ print(text, x, y, color, fixed, scale, smallfont)
 end
 
-function babys_init()
-	x=0*8
-	y=13*8
-	my=0
-	SW=240
-	SHW=SW/2
-	LW=164*8
-	function babys_TIC()
-		function move(dx)
-			x=x+dx
-			if x < 0 then x = 0 end
+--variables
+
+function _init()
+	player={
+		sp=256,
+		x=0,
+		y=9,
+		w=8,
+		h=8,
+		flp=false,
+		dx=0,
+		dy=0,
+		max_dx=2,
+		max_dy=3,
+		acc=0.5,
+		boost=4,
+		anim=0,
+		running=false,
+		jumping=false,
+		falling=false,
+		sliding=false,
+		landed=false,
+		shot_delay=0,
+		hp=3,
+		vdelay=0
+	}
+
+ mob_kinds={}
+ 
+ -- shuriken=1
+ mob_kinds[1] = {
+  sp=14,
+  w=3,
+  h=3,
+  up=shuriken_up
+ }
+ -- stealth ninja=2
+ mob_kinds[2] = {
+  sp=48,
+  w=8,
+  h=8,
+  up=stealth_up
+ }
+ -- enemy ninja=3
+ mob_kinds[3] = {
+ 	sp=32,
+ 	w=8,
+ 	h=8,
+ 	up=ninja_up
+ }
+ --scorpion=4
+ mob_kinds[4] = {
+  sp=60,
+  w=8,
+  h=8,
+  up=enemy_up
+ }
+ 
+	
+	max_objs=0
+	objs={}
+	
+	gravity=0.3
+	friction=0.85
+	
+	--simple camera
+	cam_x=0
+	cam_y=0
+	
+	--map limits
+	map_start=0
+	map_end=164*8
+	
+	--map variables
+	map_x=0
+	map_y=0
+	
+	--levels
+	level=0
+	levels=1
+	
+	init_lv()
+end
+
+function _update()
+	player_update()
+	player_animate()
+
+ foreach(objs,obj_update)
+	
+	--simple camera
+	cam_x=player.x-64+(player.w/2)
+	if cam_x<map_start then
+		cam_x=map_start
+	end
+	if cam_x>map_end-128 then
+		cam_x=map_end-128
+	end
+	camera(cam_x,cam_y)
+end
+
+function _draw()
+	cls()
+	_map(map_x,map_y)
+	px=player.x
+	py=player.y
+	pf=0
+	if player.flip then pf=1 end
+	_spr(player.sp,px,py,0,1,pf)
+
+ foreach(objs,obj_draw)
+	
+	--todo: use for loop
+	if player.hp==3 then
+	 _print("3",cam_x,0,8)
+	elseif player.hp==2 then
+		_print("2",cam_x,0,8)
+	elseif player.hp==1 then
+		_print("1",cam_x,0,8)
+	elseif player.hp==0 then
+		cls()
+		_print ("game over! :(",cam_x+38,cam_y+64,2)
+		_print("press Z to play again!",cam_x+20,cam_y+72,5)
+	end
+	_print(player.dx,cam_x,8,8)
+	_print(player.dy,cam_x,16,8)
+end
+
+function TIC()
+ _update()
+	_draw()
+end
+
+-->8
+--collision
+
+function collide_map(obj,aim,flag)
+	--obj = table;needs x,y,w,h
+	--aim = left,right,up,down,here
+	
+	local x=obj.x local y=obj.y
+	local w=obj.w local h=obj.h
+	
+	local x1=0 local y1=0
+	local x2=0 local y2=0
+	
+	if aim=="left" then
+		x1=x-1   y1=y
+		x2=x     y2=y+h-1
+		
+	elseif aim=="right" then
+		x1=x+w-1   y1=y
+		x2=x+w y2=y+h-1
+		
+	elseif aim=="up" then
+		x1=x+2   y1=y-1
+		x2=x+w-3 y2=y
+		
+	elseif aim=="down" then
+		x1=x+2     y1=y+h
+		x2=x+w-3   y2=y+h
+		
+	elseif aim=="here" then
+		x1=x       y1=y
+		x2=x+w     y2=y+h
+				
+	end
+	
+	--[[---test-----
+	x1r=x1  y1r=y1
+	x2r=x2  y2r=y2
+	--------------]]
+	
+	--pixels
+	x1=x1/8  y1=y1/8
+	x2=x2/8  y2=y2/8
+	
+	if fget(mget(map_x+x1,map_y+y1), flag)
+	or fget(mget(map_x+x1,map_y+y2), flag)
+	or fget(mget(map_x+x2,map_y+y1), flag)
+	or fget(mget(map_x+x2,map_y+y2), flag) then
+		return true
+	else
+		return false
+	end
+	
+end
+-->8
+--player
+
+function player_update()
+	if collide_map(player,"down",2) then
+		--sand=f2
+		friction=0.50
+		player.boost=2
+	elseif collide_map(player,"down",3) then
+		--ice=f3
+		friction=0.95
+		player.max_dx=3
+	elseif collide_map(player,"down",4) then
+		--lava=f4
+		player.x=0
+		player.y=9
+		player.hp=player.hp-1
+	elseif collide_map(player,"up",7) then
+		--coin=f7
+		level=(level+1)%levels
+		init_lv()
+		player.hp=3
+	else
+		--default settings
+		friction=0.85
+		player.max_dx=2
+		player.boost=4
+	end
+
+	--physics!
+	player.dy=player.dy+gravity
+	player.dx=player.dx*friction
+	
+	--win/die
+	if btn(4) then
+		level=0
+		init_lv()
+		player.hp=3
+	end
+		
+	--weapon
+	if btn(5) and player.shot_delay==0 then
+ 	ds=1
+ 	if player.flip then
+ 	 ds = -1
+ 	end
+		add_obj({
+ 	 k=1,
+ 	 x=player.x+ds*8,
+ 	 y=player.y,
+ 	 f=false,
+ 	 dx=ds*2.1,
+ 	 dy=0 })
+  player.shot_delay=30
+	end
+	if player.shot_delay > 0 then
+	 player.shot_delay=player.shot_delay-1
+	end
+	
+	--controls
+	if btn(2) then
+		player.dx=player.dx-player.acc
+		player.running=true
+		player.flip=true
+	end
+	if btn(3) then
+		player.dx=player.dx+player.acc
+		player.running=true
+		player.flip=false
+	end
+	
+	--slide
+	if player.running
+	and not btn(2)
+	and not btn(3)
+	and not player.falling
+	and not player.jumping then
+		player.running=false
+		player.sliding=true
+	end
+	
+	--jump
+	if btnp(0)
+	and player.landed then
+		player.dy=player.dy-player.boost
+		player.landed=false
+	end
+	
+	--check collide�
+	if player.dy>0 then
+		player.falling=true
+		player.landed=false
+		player.jumping=false
+		
+		player.dy=limit_speed(player.dy,player.max_dy)
+		
+		if collide_map(player,"down",0) then
+			player.landed=true
+			player.falling=false
+			player.dy=0
+			-- player.y=player.y-((player.y+player.h+1)%8)-1
+			--[[----test-----
+			collide_d="yes"
+		else
+			collide_d="no"
+			---------------]]
 		end
-		if btnp(2,0,1) then move(-1) end
-		if btnp(3,0,1) then move(1) end
-
-		local mx=clamp(0, x-SHW, LW-SW) 
-		cls(0)
-		map(mx,my)
-		spr(259,x-mx,y-my,0)
+	
+	elseif player.dy<0 then
+		player.jumping=true
+		if collide_map(player,"up",1) then
+		 player.dy=0
+		 
+		 --[[----test-----
+			collide_u="yes"
+		else
+			collide_u="no"
+			---------------]]
+		end
 	end
-	TIC=babys_TIC
+	
+	--check collide ⬅️/➡️
+	if player.dx<0 then
+	
+		player.dx=limit_speed(player.dx,player.max_dx)
+	
+		if collide_map(player,"left",1) then
+			player.dx=0
+			
+			--[[----test-----
+			collide_l="yes"
+		else
+			collide_l="no"
+			--------------]]
+			
+		end
+	elseif player.dx>0 then
+	
+		player.dx=limit_speed(player.dx,player.max_dx)
+	
+		if collide_map(player,"right",1) then
+			player.dx=0
+			
+			--[[----test-----
+			collide_r="yes"
+		else
+			collide_r="no"
+			--------------]]
+			
+		end
+	end
+	
+	--slide
+	if player.sliding then
+		if abs(player.dx)<.2
+		or player.running then
+			player.dx=0
+			player.sliding=false
+		end
+	end
+	
+	player.x=player.x+player.dx
+	player.y=player.y+player.dy
+	
+	--limit player to map
+	if player.x<map_start then
+		player.x=map_start
+	end
+	if player.x>map_end-player.w then
+		player.x=map_end-player.w
+	end
+	
+	if player.vdelay>0 then
+		player.vdelay=player.vdelay-1
+	end
 end
 
--- max_init()
-babys_init()
+function player_animate()
+	if player.jumping then
+		player.sp=259
+	elseif player.falling then
+		player.sp=260
+	elseif player.sliding then
+		player.sp=257
+	elseif player.running then
+		if time()-player.anim>.1 then
+			player.anim=time()
+			player.sp=player.sp+1
+			if player.sp>258 then
+				player.sp=256
+			end
+		end
+	else --player idle 
+		if time()-player.anim>.3 then
+			player.anim=time()
+			player.sp=player.sp+1
+			if player.sp>260 then
+				player.sp=259
+			end
+		end
+	end
+end
+
+function limit_speed(num,maximum)
+	return clamp(-maximum,num,maximum)
+end
+
+function player_touch(o)
+ if player.vdelay>0 then
+ 	return 
+ end
+ 
+ if rect_intersect(
+     player.x,player.y,
+     player.w,player.h,
+     o.x,o.y,
+     o.w,o.h) then
+  player.hp=player.hp-1
+  player.vdelay=45
+  -- sfx(1)
+ end
+end
+
+function rect_intersect(x1,y1,w1,h1,x2,y2,w2,h2)
+ return line_intersect(x1,w1,x2,w2) and line_intersect(y1,h1,y2,h2)
+end
+
+function line_intersect(x1,w1,x2,w2)
+ return (x1 <= x2+w2) and (x1+w1 >= x2)
+end
+-->8
+--levels
+
+function init_lv()
+	objs={}
+ if level==0 then
+ 	map_x=0
+ 	map_y=0
+ 	player.x=0
+ 	player.y=9
+ 	-- music(0)
+ 	print("lv 1",96,56,3)
+ 	--add_ninja(12,9)
+ 	--add_ninja(91,7)
+ 	--add_ninja(33,13)
+ elseif level==1 then
+	 map_x=0
+  map_y=16
+	 player.x=0
+	 player.y=24
+	 print("lv 2",8,184,3)
+	 music(0)
+	 add_enemy(14,29)
+	 add_enemy(102,29)
+	elseif level==2 then
+		map_x=0
+		map_y=32
+		player.x=0
+		player.y=39
+		print("lv 3",16,312,3)
+		music(0)
+	elseif level==3 then
+		map_x=0
+		map_y=48
+		player.x=0
+		player.y=54
+		print("lv 4",40,360,3)
+		music(3)
+		add_stealth(24,61)
+		add_stealth(74,61)
+		add_stealth(93,61)
+		add_stealth(106,61)
+		add_stealth(107,56)
+		add_stealth(118,54)
+		add_stealth(10,61)
+	end
+end
+
+-->8
+--projectiles and enemys
+function add_obj(o)
+	ok=mob_kinds[o.k]
+ o.w=ok.w
+ o.h=ok.h
+
+	objs[1+#objs]=o
+end
+
+function obj_update(o)
+	ok=mob_kinds[o.k]
+	ok.up(o)
+end
+
+function shuriken_up(o)
+ o.x=o.x+o.dx
+ o.y=o.y+o.dy
+
+ if collide_map(o,"here",0) then
+ 	o.dx=0 
+ 	o.dy=0
+ end
+end
+
+function obj_draw(o)
+	ok=mob_kinds[o.k]
+	sp=ok.sp
+	if o.sp then
+		sp=o.sp
+	end
+ _spr(sp,o.x,o.y,1,1,o.f)
+end
+
+function add_ninja(mx,my)
+	add_obj({
+	 k=3,
+	 x=mx*8,
+  y=my*8,
+	 f=false,
+	 sp=32,
+	 anim=0,
+	 dx=0,
+ 	dy=0 })	
+end
+
+function add_enemy(mx,my)
+	add_obj({
+	 k=4,
+	 x=mx*8,
+  y=my*8,
+	 f=false,
+	 sp=60,
+	 anim=0,
+	 dx=0,
+ 	dy=0 })	
+end
+
+function add_stealth(mx,my)
+	add_obj({
+	 k=2,
+	 x=mx*8,
+  y=my*8,
+	 f=false,
+	 sp=48,
+	 anim=0,
+	 dx=0,
+ 	dy=0 })	
+end
+
+function stealth_up(o)
+ fs=-1 fm=0.5
+ if o.f then fs=1 fm=1 end
+ dx=0
+ if fget(mget((o.x+fm*fs*o.w)/8,(o.y+o.h)/8),0) and (not fget(mget((o.x+fm*fs*o.w)/8,o.y/8),0)) then
+  dx=fs*1*friction
+ else
+  o.f=not o.f
+ end
+ o.x=o.x+dx
+
+ player_touch(o)
+
+	if time()-o.anim>.3 then
+		o.anim=time()
+		o.sp=o.sp+1
+		if o.sp>49 then
+			o.sp=48
+		end
+	end
+end
+
+function ninja_up(o)
+ fs=-1 fm=0.5
+ if o.f then fs=1 fm=1 end
+ dx=0
+ if fget(mget((o.x+fm*fs*o.w)/8,(o.y+o.h)/8),0) and (not fget(mget((o.x+fm*fs*o.w)/8,o.y/8),0)) then
+  dx=fs*1*friction
+ else
+  o.f=not o.f
+ end
+ o.x=o.x+dx
+
+ player_touch(o)
+
+	if time()-o.anim>.3 then
+		o.anim=time()
+		o.sp=o.sp+1
+		if o.sp>33 then
+			o.sp=32
+		end
+	end
+end
+
+function enemy_up(o)
+ fs=-1 fm=0.5
+ if o.f then fs=1 fm=1 end
+ dx=0
+ if fget(mget((o.x+fm*fs*o.w)/8,(o.y+o.h)/8),0) and (not fget(mget((o.x+fm*fs*o.w)/8,o.y/8),0)) then
+  dx=fs*1*friction
+ else
+  o.f=not o.f
+ end
+ o.x=o.x+dx
+
+ player_touch(o)
+
+	if time()-o.anim>.3 then
+		o.anim=time()
+		o.sp=o.sp+1
+		if o.sp>63 then
+			o.sp=60
+		end
+	end
+end
+
+_init()
 
 -- <TILES>
 -- 001:aaaaaaaaaaaaaaaaaaaaa666aaa66666aa666666a6666666a6666666a6666666
@@ -1664,7 +2267,7 @@ babys_init()
 -- </SFX>
 
 -- <FLAGS>
--- 000:00000010100000000000000000000000000000101000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000080808000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 000:00000010101000100000000000000000000000101000101000000000000000000000001000101000000000000000000000000000001000000000000000000000000000000000000000080808000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- </FLAGS>
 
 -- <PALETTE>
