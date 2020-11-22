@@ -708,6 +708,7 @@ _init()
 -- 044:aa322aaaaa223aaaaa322aaaaa222aaaad2d2dadad2d3dadcdcdcdcdcdcdcdcd
 -- 045:999ff8999998ff99999ff899999fff99d9dfdfd9d9d8dfd9dcdcdcdcdcdcdcdc
 -- 046:aa211aaaaa112aaaaa211aaaaa111aaaad1d1dadad1d2dadcdcdcdcdcdcdcdcd
+-- 047:aacbbaaaaabbcaaaaacbbaaaaabbbaaaadbdcdadadbdbdadcdcdcdcdcdcdcdcd
 -- 048:9999999999999999999999999999999999999999999999999999999999999999
 -- 049:aaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeee
 -- 050:eeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaa
@@ -724,7 +725,9 @@ _init()
 -- 064:aaaaaaaaaaa66aaaa666666a6666666666666666a6666666a666666aaa66666a
 -- 067:9999dddd999999cc9999dddd999999cc9999dddd999999cc9999dddd999999cc
 -- 068:bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc
+-- 069:aaaaaaaaaabbbacaacbbbcaaaccbccaaaacccaaaaaacaaaaaaaacaaaaaacaaaa
 -- 070:998ff99999fff99999ff899999f8f99999fff999998ff99999ff8999998ff999
+-- 071:bbbbbbbbbbbbbbbbbccbbcbccbccbccccccccccccccccccccccccccccccccccc
 -- 072:fffffffffffffffff88ff8f88f88f88888888888888888888888888888888888
 -- 073:fffff323fffff333f88ff8328f88f88888888888888888888888888888888888
 -- 074:3232332333333233323233238888888888888888888888888888888888888888
@@ -734,6 +737,7 @@ _init()
 -- 084:999999999999999999999999999999999d9d9d9d9d9d9d9dcdcdcdcdcdcdcdcd
 -- 085:aaaaaaaaaaaaaaaaabbbbbbbbcbbbcbcbcbcbcbcacbcbcbcaaabbcbcbcbcbcbc
 -- 086:aaaaaaaaaaaaaaaabbbbbbbabcbcbcbcbcbcbcbcbcbbbbbabcbaaaaabcbcbcbc
+-- 087:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 -- 088:8888888888888888888888888888888888888888888888888888888888888888
 -- 089:9999999999999999999999999989999999f9989999ffff99999f99f999f99998
 -- 096:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa22aaaaa733aaaaaa333aaaaaa7aaa
@@ -742,12 +746,14 @@ _init()
 -- 099:aaaaaaaaaaaaaaaaaaaaaaaaaaa22aaaaaa337aaaa333aaa4ee4eee4a4eee4ea
 -- 100:aaaaaaaaaaaaaaaaaaaaaaaaaaa22aaaaca337aacc333cca4ee4eee4a4eee4ea
 -- 101:aaaaaaaaaaaaaaaaaaaaaaaaaaaccaaaaaccccaaaaccccaaaaccccaaaaaccaaa
+-- 103:ccccccccbbbbbbbbccccccccbbbbbbbbccccccccbbbbbbbbccccccccbbbbbbbb
 -- 104:999d0ded999d0d6d999d0d4d999d0d9d999d049d999d0d8d999d0d8d999ddddd
 -- 105:ed0d99996d0d99994d0d99999d0d9999940d99998d0d99998d0d9999dddd9999
 -- 112:aaaaaaaaaaaaaaaaaaaaaaaaa22aa33aaa2333aaaaa7322aaaaaaaaaaaaaaaaa
 -- 113:aaaaaaaaaaaaaaaaaaaaaaaaa33aa22aaa3332aaa2237aaaaaaaaaaaaaaaaaaa
 -- 114:aaaaaaaaaaaaaaaaaaaaaaaaa2233aaaaa3372aaa33a222aaaaaaaaaaaaaaaaa
 -- 117:aaaaaaaaaaaaaaaaaaaaaaaaaaa56aaaaa5555aaaa5656aaaa5555aaaa6556aa
+-- 119:aabccaaaaacccaaaaaccbaaaaacbcaaaaacccaaaaabccaaaaaccbaaaaabccaaa
 -- 128:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa88aaaaa799aaaaaa999aaaaaa7aaa
 -- 129:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa88aaaaaa997aaaa999aaaaaa7aaaa
 -- 130:aaaaaaaaaaaaaaaaaaaaaaaaaaa9988aaa8799aaa888a99aaaaaaaaaaaaaaaaa
