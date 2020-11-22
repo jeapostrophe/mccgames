@@ -119,6 +119,7 @@ end
 -- 213:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 -- 214:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 -- 215:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+-- 255:ccccccccc044440cc44bb44cc4baba4cc4bbbb4cc777777bc777777ccbcccccc
 -- </TILES>
 
 -- <TILES1>
@@ -277,7 +278,7 @@ end
 -- </SFX>
 
 -- <PALETTE>
--- 000:0000005d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2814408333c57
+-- 000:0000005d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f6ffccaaf4f4f494b0c2814408333c57
 -- </PALETTE>
 
 -- <PALETTE1>
