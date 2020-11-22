@@ -120,7 +120,7 @@ rooms[7]=
 rooms[6]=
  { mx=150
 	, my=0
-, mobs={ [1]={ mx=15	
+ , mobs={ [1]={ mx=152	
 	             , my=7
 														, ms=402
 														, mitm=1 } }	
