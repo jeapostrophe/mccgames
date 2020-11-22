@@ -119,7 +119,7 @@ function _init()
 	max_objs=0
 	objs={}
 	
-	gravity=0.0
+	gravity=0.1
 	friction=0.85
 	
 	--simple camera
