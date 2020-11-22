@@ -87,7 +87,8 @@ function _init()
  
  -- shuriken=1
  mob_kinds[1] = {
-  sp=14,
+  sp=277,
+		spck=10,
   w=3,
   h=3,
   up=shuriken_up
@@ -539,6 +540,10 @@ end
 function shuriken_up(o)
  o.x=o.x+o.dx
  o.y=o.y+o.dy
+	
+	if o.dx < 0 then
+		o.f=true
+	end
 
  if collide_map(o,"here",0) then
  	o.dx=0 
@@ -552,7 +557,9 @@ function obj_draw(o)
 	if o.sp then
 		sp=o.sp
 	end
- _spr(sp,o.x,o.y,1,1,o.f)
+	local fi=0
+	if o.f then fi=1 end
+ _spr(sp,o.x,o.y,ok.spck,1,fi)
 end
 
 function add_ninja(mx,my)
@@ -1574,6 +1581,7 @@ _init()
 -- 018:000000000000000000cccc0000c3330000cc330000cccc00000cc000000cd000
 -- 019:000000000000000000cccc000033330000c33c000cccccc000cccc0000c00c00
 -- 020:000000000000000000cccc00003333000cc33cc000cccc0000cccc0000c00c00
+-- 021:aaaaaaaaaaa3aaaaaa3a333aaaa32227aa337223aaa3233aaaa3aaaaaaaaaaaa
 -- 032:0000000000000000000220000072270000222200307227032302203202200220
 -- 035:00000000000000000022200000cfc00000ccc000033333002022202000303000
 -- 048:0050005000055500055ccc55066cfc66006ccc60000505000000000000000000
