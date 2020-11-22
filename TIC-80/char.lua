@@ -3,7 +3,7 @@
 -- desc:   Your a young bunny with a taste for adventure! Go on quests to unlock tech!
 -- script: lua
 
-DEBUG=true
+DEBUG=false
 
 scene=nil
 
