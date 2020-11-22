@@ -377,7 +377,7 @@ player={ sst=0
 function start_game() 
  scene=sc_explore
 	if DEBUG then
-	 enter_room(15,1)
+	 enter_room(14,1)
 	else
   enter_room(1,1)
 	end
@@ -398,7 +398,14 @@ function sc_explore()
 
  if room.mobs then
  for mn,mi in pairs(room.mobs) do
-	 if mi.dead then goto continue end
+	 if mi.dead then
+		 if mi.mitm then
+				local i=items[mi.mitm]
+				local iw=i.w or 1
+				local ih=i.h or 1
+			 spr(i.spr, mi.px, mi.py, 11, 1, 0, 0, iw, ih)
+   end
+		else
 	 if not mi.t then mi.t = 0 end
 		mi.px=(mi.mx-room.mx)*8
 		mi.py=(mi.my-room.my)*8
@@ -435,7 +442,7 @@ function sc_explore()
 		else
 		 mi.t = mi.t - 1
 		end
-		::continue::
+		end
 	end
  end
 
