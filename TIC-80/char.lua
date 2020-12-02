@@ -528,7 +528,7 @@ function sc_explore()
 	end
 end
 
-sync(0,7)
+--sync(0,7)
 
 start_game()
 
