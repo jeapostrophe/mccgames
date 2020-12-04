@@ -1,3 +1,4 @@
 dist
 PICO-8/demos
 .DS_Store
+*.swp
