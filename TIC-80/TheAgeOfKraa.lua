@@ -1,4 +1,4 @@
--- title:  The Age of Kraa
+	-- title:  The Age of Kraa
 -- author: Balistic Ghoul Studios
 -- desc:   Based on a Book by Jack McCarthy
 -- script: lua
