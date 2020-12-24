@@ -1,4 +1,4 @@
--- title: widle Guy
+-- title: Widdle Guy
 -- author: Balistic Ghoul Studios
 -- desc:   short description
 -- script: lua
