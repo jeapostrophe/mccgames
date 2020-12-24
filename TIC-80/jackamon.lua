@@ -5,7 +5,7 @@
 
 DEBUG=false
 --DEBUG=true
-sync(39,2)
+--sync(39,2)
 
 B_OK=5
 B_BACK=4
@@ -65,7 +65,7 @@ player={ sprb=256
 							, i_con=0
 							, i_bur=0
 							, i_see=0
-							, flp=false }
+							, flp=0 }
 
 mons={}
 play_mons={}
@@ -118,7 +118,7 @@ function draw_explore()
 	map(room.mx,room.my)
 	if DEBUG then print("ROOM #"..roomn) end
 	p=player
-	spr(p.spr,p.x*8,p.y*8,0)
+	spr(p.spr,p.x*8,p.y*8,0,1,player.flp)
 end
 
 function sc_explore()
@@ -168,8 +168,8 @@ function sc_explore()
 	end
 	if btnp(0,1,10) then move(0,-1) end
 	if btnp(1,1,10) then move(0,1) end
-	if btnp(2,1,10) then move(-1,0) end
-	if btnp(3,1,10) then move(1,0) end
+	if btnp(2,1,10) then move(-1,0) player.flp=1 end
+	if btnp(3,1,10) then move(1,0) player.flp=0 end
 	
 	if btnp(B_BACK) then start_menu() end
 	
