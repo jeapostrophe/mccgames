@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 29
 __lua__
+--water code
+
 function _init()
 
  --underwater palette array
