@@ -143,9 +143,12 @@ function TIC()
 	elseif c==1400 then --Candy Land
 	 wrl=200
 		enemy=362
-	elseif c>1500 then --The Tower
+	elseif c==1500 then --The Tower
 	 wrl=204
 		enemy=390
+	elseif c>50000 then
+		cls(0)
+		print("You Win! :)",12*8,6*8)
 	end
 end
 
