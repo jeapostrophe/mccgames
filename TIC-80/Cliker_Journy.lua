@@ -99,54 +99,54 @@ function TIC()
 	if c==0 then --Grass
 	 wrl=0
 		enemy=260
-	elseif c>99 then --Desert
+	elseif c>100 then --Desert
 	 wrl=4
 		enemy=356
-	elseif c>199 then --Ocean
+	elseif c>200 then --Ocean
 	 wrl=8
 		enemy=298
-	elseif c>299 then --Volcano
+	elseif c>300 then --Volcano
 	 wrl=12
 		enemy=328
-	elseif c>399 then --Tundra
+	elseif c>400 then --Tundra
 	 wrl=64
 		enemy=300
-	elseif c>499 then --Rock Plains
+	elseif c>500 then --Rock Plains
 	 wrl=68
 		enemy=296
-	elseif c>599 then --Library
+	elseif c>600 then --Library
 	 wrl=72
 		enemy=302
-	elseif c>699 then --Astral Rift
+	elseif c>700 then --Astral Rift
 	 wrl=76
 		enemy=332
-	elseif c>799 then --Blood Plains
+	elseif c>800 then --Blood Plains
 	 wrl=128
 		enemy=326
 		col=11
-	elseif c>899 then --Treasue Cave
+	elseif c>900 then --Treasue Cave
 	 wrl=132
 		enemy=294
 		col=8
-	elseif c>999 then --Hive
+	elseif c>1000 then --Hive
 	 wrl=136
 		enemy=360
-	elseif c>1099 then --The Void
+	elseif c>1100 then --The Void
 	 wrl=140
 		enemy=268
-	elseif c>1199 then --The Mine
+	elseif c>1200 then --The Mine
 	 wrl=192
 		enemy=388
-	elseif c>1299 then --The Sewer
+	elseif c>1300 then --The Sewer
 	 wrl=196
 		enemy=364
-	elseif c>1399 then --Candy Land
+	elseif c>1400 then --Candy Land
 	 wrl=200
 		enemy=362
-	elseif c>1499 then --The Tower
+	elseif c>1500 then --The Tower
 	 wrl=204
 		enemy=390
-	elseif c>4999 then
+	elseif c>5000 then
 		cls(0)
 		print("You Win! :)",12*8,6*8)
 	end
