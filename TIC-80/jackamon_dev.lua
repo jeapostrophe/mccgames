@@ -1,4 +1,4 @@
--- title: Jackamon 1.8
+-- title: Jackamon 1.9
 -- author: Balistic Ghoul Studios
 -- desc:  A game like pokemon (See PICO-8 for my other games)
 -- script: lua
