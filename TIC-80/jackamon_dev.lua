@@ -18,31 +18,31 @@ end
 
 function draw_box(mx,my,tw,th)
  rect(mx+4,my+4,tw*8-4,th*8-4,0)
-	for i=1,tw-1 do
-	 spr(269,mx+8*i,my,-1)
-		spr(301,mx+8*i,my+8*th,-1)
-	end
-	for i=1,th-1 do
-	 spr(284,mx,my+8*i,-1)
-		spr(286,mx+8*tw,my+8*i,-1)
-	end
-	spr(268,mx,my,6)
-	spr(300,mx,my+8*th,6)
-	spr(270,mx+8*tw,my,6)
-	spr(302,mx+8*tw,my+8*th,6)
+  for i=1,tw-1 do
+   spr(269,mx+8*i,my,-1)
+    spr(301,mx+8*i,my+8*th,-1)
+  end
+  for i=1,th-1 do
+   spr(284,mx,my+8*i,-1)
+    spr(286,mx+8*tw,my+8*i,-1)
+  end
+  spr(268,mx,my,6)
+  spr(300,mx,my+8*th,6)
+  spr(270,mx+8*tw,my,6)
+  spr(302,mx+8*tw,my+8*th,6)
 end
 
 function start_title() 
  scene=sc_title
 end
 function sc_title()
-	cls(0)
-	map(0,0)
-	print("Ver 1.8",1*8,15*8,7,0,1,1)
-	print("Press X",11*8,14*8,15)
-	if btnp(B_OK) then
-		start_explore()
-	end
+  cls(0)
+  map(0,0)
+  print("Ver 1.9",1*8,15*8,7,0,1,1)
+  print("Press X",11*8,14*8,15)
+  if btnp(B_OK) then
+    start_explore()
+  end
 end
 
 function tablesAndStuff() end
@@ -52,20 +52,26 @@ roomn=nil
 room=nil
 exitn=nil
 
-player={ sprb=256
-       , spr=260  -- *** change later
-							, i_hp=0
-							, i_max=0
-							, i_swim=0
-							, i_rock=0
-							, i_file=10
-							, i_bonus=0
-							, i_poi=0
-							, i_par=0
-							, i_con=0
-							, i_bur=0
-							, i_see=0
-							, flp=0 }
+player={ spr_idle = { 256, 261 }
+       , spr_move = { 256, 257, 258, 259, 260 }
+       , spr_idle_t = 0
+       , spr_idle_t_def = 45
+       , spr_move_t = 0
+       , spr_move_t_def = 20
+       , spr_i = 1
+       , spr=256  -- *** change later
+              , i_hp=0
+              , i_max=0
+              , i_swim=0
+              , i_rock=0
+              , i_file=10
+              , i_bonus=0
+              , i_poi=0
+              , i_par=0
+              , i_con=0
+              , i_bur=0
+              , i_see=0
+              , flp=0 }
 
 mons={}
 play_mons={}
@@ -74,113 +80,132 @@ active_mon=nil
 
 function healthy_mons()
  for mn,mi in pairs(play_mons) do
-	 if mi.hp > 0 then
-		 return true
-		end
-	end
-	return false
+   if mi.hp > 0 then
+     return true
+    end
+  end
+  return false
 end
 
 function get_mon(mn)
  play_mons[mn]= { hp=mons[mn].hp
-	               , xp=mons[mn].xp }
-	seen_mons[mn]=true
-	if active_mon == nil then
-	 active_mon = mn
-	end
+                 , xp=mons[mn].xp }
+  seen_mons[mn]=true
+  if active_mon == nil then
+   active_mon = mn
+  end
 end
 
 function start_explore() 
  scene=sc_explore
  if not DEBUG then
-	  enter_room(2,1)
+    enter_room(2,1)
  else
-	  enter_room(1,2)
-			get_mon(3)
-			get_mon(1)
-	end
+    enter_room(1,2)
+      get_mon(3)
+      get_mon(1)
+  end
 end
 
 function enter_room(rn,en)
  room=rooms[rn]
-	if room.weird then
-	 room.ext[room.weird].r=roomn
-		room.ext[room.weird].e=exitn
-	end
+  if room.weird then
+   room.ext[room.weird].r=roomn
+    room.ext[room.weird].e=exitn
+  end
  roomn=rn
-	ent=room.ent[en]
-	player.x=ent.px-room.mx
-	player.y=ent.py-room.my
+  ent=room.ent[en]
+  player.x=ent.px-room.mx
+  player.y=ent.py-room.my
 end
 
 function draw_explore()
-	cls(0)
-	map(room.mx,room.my)
-	if DEBUG then print("ROOM #"..roomn) end
-	p=player
-	spr(p.spr,p.x*8,p.y*8,0,1,player.flp)
+  cls(0)
+  map(room.mx,room.my)
+  if DEBUG then print("ROOM #"..roomn) end
+  p=player
+  spr(p.spr,p.x*8,p.y*8,0,1,player.flp)
 end
 
 function sc_explore()
-	draw_explore()
-				
-	function move(dx,dy)
-	 nx=p.x+dx
-		ny=p.y+dy
-		mnx=room.mx+nx
-		mny=room.my+ny
-		if room.ext then
-		for ei,e in ipairs(room.ext) do
-		 if mnx==e.x and mny==e.y then
-			 exitn=ei
-			 enter_room(e.r,e.e)
-				return
-			end
-		end
-		end
-		local mt=mget(mnx,mny)
-		local cliff=fget(mt,2)
-		if (fget(mt,1) and not healthy_mons()) then
-			scene=mk_sc_obj(act_msg("You can't go in there!")(room,nil))
-		elseif (not fget(mt,0))
-		   and (not cliff or dy==1)
-					and (not fget(mt,3) or p.i_rock>0)
-					and (not fget(mt,4) or p.i_swim>0)
-		then
-		 p.x=nx
-			if cliff then ny=ny+1 end
-			p.y=ny
-			
-			if fget(mt,1) then
-			 if math.random() <= 0.1 then
-				 start_battle(room.mons[ math.random( #room.mons ) ] )
- 			 return
-				end
-			end
-			if not fget(mget(mnx,mny),0) then
-			 p.x=nx
-				p.y=ny
-				p.spr=p.sprb+(((p.spr-p.sprb)+1)%2)
-			end
-			return
-		end
-		--- XXX add a bump sound
-	end
-	if btnp(0,1,10) then move(0,-1) end
-	if btnp(1,1,10) then move(0,1) end
-	if btnp(2,1,10) then move(-1,0) player.flp=1 end
-	if btnp(3,1,10) then move(1,0) player.flp=0 end
-	
-	if btnp(B_BACK) then start_menu() end
-	
-	if btnp(B_OK) and room.obj then
-	 for oi,o in ipairs(room.obj) do
-		 if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
-			 scene=mk_sc_obj(o.a(room,oi))
-				return
-			end
+  local p=player
+  if p.spr_move_t > 0 then
+    p.spr_move_t = p.spr_move_t - 1
+    if p.spr_move_t == 0 then
+      p.spr_idle_t = p.spr_idle_t_def
+      p.spr_i = 1
+    end
   end
-	end
+  if p.spr_move_t == 0 then
+    p.spr_idle_t = p.spr_idle_t - 1
+    if p.spr_idle_t <= 0 then
+      p.spr_idle_t = p.spr_idle_t_def
+      p.spr_i = (p.spr_i % (#p.spr_idle)) + 1
+    end
+    p.spr = p.spr_idle[p.spr_i]
+  end
+
+  draw_explore()
+        
+  function move(dx,dy)
+    p.spr_move_t = p.spr_move_t_def
+   nx=p.x+dx
+    ny=p.y+dy
+    mnx=room.mx+nx
+    mny=room.my+ny
+    if room.ext then
+    for ei,e in ipairs(room.ext) do
+     if mnx==e.x and mny==e.y then
+       exitn=ei
+       enter_room(e.r,e.e)
+        return
+      end
+    end
+    end
+    local mt=mget(mnx,mny)
+    local cliff=fget(mt,2)
+    if (fget(mt,1) and not healthy_mons()) then
+      scene=mk_sc_obj(act_msg("You can't go in there!")(room,nil))
+    elseif (not fget(mt,0))
+       and (not cliff or dy==1)
+          and (not fget(mt,3) or p.i_rock>0)
+          and (not fget(mt,4) or p.i_swim>0)
+    then
+     p.x=nx
+      if cliff then ny=ny+1 end
+      p.y=ny
+      
+      if fget(mt,1) then
+       if math.random() <= 0.1 then
+         start_battle(room.mons[ math.random( #room.mons ) ] )
+        return
+        end
+      end
+      if not fget(mget(mnx,mny),0) then
+       p.x=nx
+        p.y=ny
+        p.spr_i = (p.spr_i % (#p.spr_move)) + 1
+        p.spr=p.spr_move[p.spr_i]
+      end
+      return
+    end
+    --- XXX add a bump sound
+  end
+  if btnp(0,1,10) then move(0,-1) end
+  if btnp(1,1,10) then move(0,1) end
+  if btnp(2,1,10) then move(-1,0) player.flp=1 end
+  if btnp(3,1,10) then move(1,0) player.flp=0 end
+  
+  if btnp(B_BACK) then start_menu() end
+  
+  if btnp(B_OK) and room.obj then
+   for oi,o in ipairs(room.obj) do
+     if o.x==room.mx+p.x and o.y==room.my+p.y-1 then
+       scene=mk_sc_obj(o.a(room,oi))
+        return
+      end
+  end
+  end
 end
 
 battleSteps = {}
@@ -192,154 +217,154 @@ battleSteps["TRANS"] =
  , next = "BATTLE" }
 battleSteps["BATTLE"] =
  { t = 1
-	, next = "BATTLE" }
+  , next = "BATTLE" }
 battleSteps["BATMSG"] = 
  { t = 32
  , next = "BATTLE" }
 battleSteps["BATOVER"] =
  { t = 1
-	, next = "BATOVER" }
+  , next = "BATOVER" }
 
 function batItems()
  batMessage(
-	 "You tried to look at your items...",
-		batNotReady)
+   "You tried to look at your items...",
+    batNotReady)
 end
 function batMon()
  local B=battle
-	B.step="BATOVER"
+  B.step="BATOVER"
 
  scene=sc_dex
-	dex={ draw = sc_battle
- 	   , selected=active_mon
-	    , select = true
-	    , after = function(smn)
-						  if smn then 
-								 active_mon=smn
-									scene=sc_battle
-									batMessage(
-									 "You switch to "..mons[smn].name,
-										batEnemyTurn)
-								else
-									scene=sc_battle
-									B.step="BATTLE"
-								end
-				 	 end }
+  dex={ draw = sc_battle
+      , selected=active_mon
+      , select = true
+      , after = function(smn)
+              if smn then 
+                 active_mon=smn
+                  scene=sc_battle
+                  batMessage(
+                   "You switch to "..mons[smn].name,
+                    batEnemyTurn)
+                else
+                  scene=sc_battle
+                  B.step="BATTLE"
+                end
+            end }
 end
 
 function batEvalAttack(rator, ratora, rand, randa, atk, plvl, alive, dead)
  return function()
   --- XXX animation
-	 --- XXX effect
-	 --- XXX defense / type
-	 local ratori = ratora[rator]
-	 local randi = randa[rand]
-	 randi.hp = math.max(0, randi.hp - (atk.dmg * plvl))
-		if randi.hp == 0 then
-		 dead()
-		else
-		 alive()
-		end
-	end
+   --- XXX effect
+   --- XXX defense / type
+   local ratori = ratora[rator]
+   local randi = randa[rand]
+   randi.hp = math.max(0, randi.hp - (atk.dmg * plvl))
+    if randi.hp == 0 then
+     dead()
+    else
+     alive()
+    end
+  end
 end
 
 function batEnemyTurn()
  local B=battle
  local en=B.en
-	local mi=mons[en]
-	local atks=mi.atks
+  local mi=mons[en]
+  local atks=mi.atks
  local atki=atks[ math.random( #atks ) ]
-	local atk=atki[1]
-	local power_lvl=atki[2]
+  local atk=atki[1]
+  local power_lvl=atki[2]
 
  batMessage(
-	 "The "..mi.name.." used "..atk.name.."...",
-		batEvalAttack(B.en, B.mons, active_mon, play_mons, atk, power_lvl,
-		 batBackToBattle, batPlayerDead))
+   "The "..mi.name.." used "..atk.name.."...",
+    batEvalAttack(B.en, B.mons, active_mon, play_mons, atk, power_lvl,
+     batBackToBattle, batPlayerDead))
 end
 function batNotReady()
-	batMessage(
-		"But, we didn't implement it yet!",
-		nil)
+  batMessage(
+    "But, we didn't implement it yet!",
+    nil)
 end
 function batRun()
  batMessage(
-	 "You try to run away...",
-		function ()
+   "You try to run away...",
+    function ()
    if math.random() <= 0.5 then
     batMessage(
-				 "...and you got away!",
-					batOver)
-  	else
-			 batMessage(
-				 "...but you couldn't escape!",
-					batEnemyTurn)
-			end
-	 end)
+         "...and you got away!",
+          batOver)
+    else
+       batMessage(
+         "...but you couldn't escape!",
+          batEnemyTurn)
+      end
+   end)
 end
 
 function batMessage(m, after)
  local B=battle
-	B.step="BATMSG"
-	B.t=battleSteps[B.step].t
-	if not after then after="BATTLE" end
+  B.step="BATMSG"
+  B.t=battleSteps[B.step].t
+  if not after then after="BATTLE" end
  battleSteps[B.step].next=after
-	B.msg=m
+  B.msg=m
 end
 function batBackToBattle()
  local B=battle
  B.step="BATTLE"
-	B.t=battleSteps[B.step].t	
+  B.t=battleSteps[B.step].t  
 end
 
 function batDoAttack(atk, power_lvl)
  local B=battle
  batMessage(
-	 "You used "..atk.name.."...",
-		batEvalAttack(active_mon, play_mons, B.en, B.mons, atk, power_lvl,
-		 batEnemyTurn, batEnemyDead))
+   "You used "..atk.name.."...",
+    batEvalAttack(active_mon, play_mons, B.en, B.mons, atk, power_lvl,
+     batEnemyTurn, batEnemyDead))
 end
 function batAttack()
  local B=battle
  local bm={}
-	local am=active_mon
-	local mi=mons[am]
-	
-	bm.idx=0
-	bm.back=function() B.bm=batMenuTop end
-	bm.opts={}
-	for aidx, ai in ipairs(mi.atks) do
-	 local atk=ai[1]
-	 bm.opts[aidx]=
-		 { label=atk.name
-		 , a=function ()
-			     bm.back() 
-			     batDoAttack(atk, ai[2])
-							end }
-	end
+  local am=active_mon
+  local mi=mons[am]
+  
+  bm.idx=0
+  bm.back=function() B.bm=batMenuTop end
+  bm.opts={}
+  for aidx, ai in ipairs(mi.atks) do
+   local atk=ai[1]
+   bm.opts[aidx]=
+     { label=atk.name
+     , a=function ()
+           bm.back() 
+           batDoAttack(atk, ai[2])
+              end }
+  end
  B.bm=bm
 end
 
 function batPlayerDead()
  --- XXX switch active_mon
  batMessage(
-	 "Your "..mons[active_mon].name.." fainted!",
-		batOver)
+   "Your "..mons[active_mon].name.." fainted!",
+    batOver)
 end
 function batEnemyDead()
  local en=battle.en
-	--- XXX do XP
+  --- XXX do XP
  batMessage(
-	 "You defeated the "..mons[en].name.."!",
-		batOver)
+   "You defeated the "..mons[en].name.."!",
+    batOver)
 end
 
 batMenuTop={ idx=0
-											, opts={ {label="ATTACK",a=batAttack}
-											       , {label="ITEMS",a=batItems}
-																		, {label="MON",a=batMon}
-																		, {label="RUN",a=batRun} }
-											, back=function() end }
+                      , opts={ {label="ATTACK",a=batAttack}
+                             , {label="ITEMS",a=batItems}
+                                    , {label="MON",a=batMon}
+                                    , {label="RUN",a=batRun} }
+                      , back=function() end }
 
 function batOver()
  scene=sc_explore
@@ -347,232 +372,232 @@ end
 
 battle = nil
 function start_battle(mn)
-	local which_trans = math.random(2)
+  local which_trans = math.random(2)
 
  battle={ t=battleSteps["MSG"].t
-	       , step="MSG"
-	       , trans=which_trans
-	       , en=mn
-								, bm=batMenuTop
-								, mons={} }
-	battle.mons[mn] = { hp=mons[mn].hp 
-	                  , e=e_normal}
+         , step="MSG"
+         , trans=which_trans
+         , en=mn
+                , bm=batMenuTop
+                , mons={} }
+  battle.mons[mn] = { hp=mons[mn].hp 
+                    , e=e_normal}
  seen_mons[mn] = true
-	for pmn, pi in pairs(play_mons) do
-	 pi.e = e_normal
-	end
+  for pmn, pi in pairs(play_mons) do
+   pi.e = e_normal
+  end
 
-	scene=sc_battle
+  scene=sc_battle
 end
 function sc_battle()
  local B = battle
  if B.step == "MSG" then
-	 draw_explore()
-	 draw_msg("A wild " .. mons[B.en].name .. " approaches!")
+   draw_explore()
+   draw_msg("A wild " .. mons[B.en].name .. " approaches!")
  elseif B.step == "TRANS" then
-		local trans_mx = 150 + 30*B.trans
-	 local trans_my = 0
-	 draw_explore()
-		local clear = 0
-		if ( B.t % 32 < 16 ) then clear = 15 end
-		map(trans_mx, trans_my, 30, 17, 0, 0, clear)
-	elseif B.step == "BATTLE" or B.step == "BATMSG" or B.step == "BATOVER" then
-	 local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
-		map(scr.x, scr.y, 30, 17)
-		
-		local am=active_mon
-		spr(monspr(B.en), scr.ex*8, scr.ey*8, 0, 4)
-		spr(monspr(am), scr.px*8, scr.py*8, 0, 4)
-		
-		function showmoninfo(mn, mtab, ix, iy)
-		 local nm=mons[mn].name
-			local hpx=(ix+1)*8
-			local hpy=(iy+2)*8
-			local hpw=5
+    local trans_mx = 150 + 30*B.trans
+   local trans_my = 0
+   draw_explore()
+    local clear = 0
+    if ( B.t % 32 < 16 ) then clear = 15 end
+    map(trans_mx, trans_my, 30, 17, 0, 0, clear)
+  elseif B.step == "BATTLE" or B.step == "BATMSG" or B.step == "BATOVER" then
+   local scr=battle_scrs[mget(room.mx+p.x,room.my+p.y)]
+    map(scr.x, scr.y, 30, 17)
+    
+    local am=active_mon
+    spr(monspr(B.en), scr.ex*8, scr.ey*8, 0, 4)
+    spr(monspr(am), scr.px*8, scr.py*8, 0, 4)
+    
+    function showmoninfo(mn, mtab, ix, iy)
+     local nm=mons[mn].name
+      local hpx=(ix+1)*8
+      local hpy=(iy+2)*8
+      local hpw=5
 
-			draw_box(ix*8, iy*8, hpw+5, 3)
-			print(nm, (ix+1)*8, (iy+1)*8)
-			spr(262, hpx+8*0, hpy, 8)
-			spr(263, hpx+8*1.25, hpy, 8)
-			for i=0,hpw-3 do
-			 spr(264, hpx+8*(2.25+i), hpy, 8)
-			end
-			spr(263, hpx+8*(0.25+hpw), hpy, 8, 1, 0, 2)
-			
-			local e=mtab[mn].e
-			spr(278+16*(e//5)+e%5, hpx+8*(1.5+hpw), hpy, 8)
-			
-			local hp_per=mtab[mn].hp/mons[mn].hp
-			local hpc=11
-			if ( hp_per <= 0.5 ) then hpc=14 end
-			if ( hp_per <= 0.25 ) then hpc=6 end
-			rect(hpx+8*1.25+1, hpy+3, (14+8*(hpw-2))*hp_per, 2, hpc)
-		end
-		showmoninfo(B.en, B.mons, 1, 0.5)
-		showmoninfo(am, play_mons, 12, 12.5)
-		
-		--- Show attack menu
-		local Bm=B.bm
-		local amx=23.5*8
-		local amy=11.5*8
-		local bmMax=#(Bm.opts)
-		draw_box(amx, amy, 5, 4)
-		for oidx, oi in ipairs(Bm.opts) do
-		 print(oi.label, amx+8, amy+4+8*(oidx-1))
-		end
-		spr(285, amx+1, (amy+2)+8*(Bm.idx), 0)
-	
-	 if B.step == "BATMSG" then
-		 draw_msg(B.msg, 4*8, 6*8)
-		elseif B.step == "BATOVER" then
-		 local nop=0
-		else	
+      draw_box(ix*8, iy*8, hpw+5, 3)
+      print(nm, (ix+1)*8, (iy+1)*8)
+      spr(262, hpx+8*0, hpy, 8)
+      spr(263, hpx+8*1.25, hpy, 8)
+      for i=0,hpw-3 do
+       spr(264, hpx+8*(2.25+i), hpy, 8)
+      end
+      spr(263, hpx+8*(0.25+hpw), hpy, 8, 1, 0, 2)
+      
+      local e=mtab[mn].e
+      spr(278+16*(e//5)+e%5, hpx+8*(1.5+hpw), hpy, 8)
+      
+      local hp_per=mtab[mn].hp/mons[mn].hp
+      local hpc=11
+      if ( hp_per <= 0.5 ) then hpc=14 end
+      if ( hp_per <= 0.25 ) then hpc=6 end
+      rect(hpx+8*1.25+1, hpy+3, (14+8*(hpw-2))*hp_per, 2, hpc)
+    end
+    showmoninfo(B.en, B.mons, 1, 0.5)
+    showmoninfo(am, play_mons, 12, 12.5)
+    
+    --- Show attack menu
+    local Bm=B.bm
+    local amx=23.5*8
+    local amy=11.5*8
+    local bmMax=#(Bm.opts)
+    draw_box(amx, amy, 5, 4)
+    for oidx, oi in ipairs(Bm.opts) do
+     print(oi.label, amx+8, amy+4+8*(oidx-1))
+    end
+    spr(285, amx+1, (amy+2)+8*(Bm.idx), 0)
+  
+   if B.step == "BATMSG" then
+     draw_msg(B.msg, 4*8, 6*8)
+    elseif B.step == "BATOVER" then
+     local nop=0
+    else  
    function move(dm)
-	   Bm.idx=(Bm.idx+dm)%bmMax
-	  end
-	  if btnp(0,1,10) then move(-1) end
-	  if btnp(1,1,10) then move(1) end
-	
-	  if btnp(B_BACK) then Bm.back() end
-	  if btnp(B_OK) then Bm.opts[Bm.idx+1].a() end
-		end
-	end
+     Bm.idx=(Bm.idx+dm)%bmMax
+    end
+    if btnp(0,1,10) then move(-1) end
+    if btnp(1,1,10) then move(1) end
+  
+    if btnp(B_BACK) then Bm.back() end
+    if btnp(B_OK) then Bm.opts[Bm.idx+1].a() end
+    end
+  end
 
  B.t = B.t - 1
-	if B.t == 0 then
-		local next = battleSteps[B.step].next
-		if type(next) == "function" then
-		 next()
-		else
- 		B.step = next
-	 	B.t = battleSteps[next].t
-		end
-	end
+  if B.t == 0 then
+    local next = battleSteps[B.step].next
+    if type(next) == "function" then
+     next()
+    else
+     B.step = next
+     B.t = battleSteps[next].t
+    end
+  end
 end
 
 function mk_sc_obj(draw_obj)
  return function()
   draw_explore()
-	 local obj_done = draw_obj()
-	 if btnp(B_BACK) or obj_done then 
-		 scene=sc_explore
-		end
+   local obj_done = draw_obj()
+   if btnp(B_BACK) or obj_done then 
+     scene=sc_explore
+    end
  end
 end
 
 function draw_msg(m, mx, my)
-	mx=mx or 1
-	my=my or (15*8-1)
-	local w=(string.len(m)+2)*5+2
-	draw_box(mx,my,math.ceil((w)/8),1)
-	print(m,mx+3,my+6,15,0,1,1)
+  mx=mx or 1
+  my=my or (15*8-1)
+  local w=(string.len(m)+2)*5+2
+  draw_box(mx,my,math.ceil((w)/8),1)
+  print(m,mx+3,my+6,15,0,1,1)
 end
 
 function act_msg(m)
  return function(_r,_oi)
-	 return function()
-		 draw_msg(m)
-		end
-	end
+   return function()
+     draw_msg(m)
+    end
+  end
 end
 
 have_starter=false
 function act_starter(mn)
  return function(r,oi)
-	 if have_starter then
-		 return act_msg("Urm, you already have a starter.")(r,oi)
-		else
-	  local m="It's a " .. mons[mn].name .. ", choose it?"
-	  local mf=act_msg(m)(r,oi)
-	  return function()
+   if have_starter then
+     return act_msg("Urm, you already have a starter.")(r,oi)
+    else
+    local m="It's a " .. mons[mn].name .. ", choose it?"
+    local mf=act_msg(m)(r,oi)
+    return function()
     mf()
-				if btnp(B_OK) then
-				 have_starter=true
-					get_mon(mn)
-					return true
-				end
-		 end
-		end
-	end
+        if btnp(B_OK) then
+         have_starter=true
+          get_mon(mn)
+          return true
+        end
+     end
+    end
+  end
 end
 
 function act_ani(m)
  return function(r,oi)
-	 local mf=act_msg(m)(r,oi)
-		local o=r.obj[oi]
-		local t=10
-		local m=0
-	 return function()
+   local mf=act_msg(m)(r,oi)
+    local o=r.obj[oi]
+    local t=10
+    local m=0
+   return function()
    mf()
-			local f=nil
-			if m<o.a_s_l then 
-			 f=o.a_s_s-m
-			 t=t-1
-				if t==0 then
-				 m=m+1
-					t=10
-				end
-			else
-			 local mm=m-o.a_s_l
-			 f=o.a_m_s+mm
-				t=t-1
-				if t==0 then
-				 m=o.a_s_l+(mm+1)%o.a_m_l
-					t=10
-				end
-			end
-			spr(f,(o.x-room.mx)*8,(o.y-room.my)*8,-1)
+      local f=nil
+      if m<o.a_s_l then 
+       f=o.a_s_s-m
+       t=t-1
+        if t==0 then
+         m=m+1
+          t=10
+        end
+      else
+       local mm=m-o.a_s_l
+       f=o.a_m_s+mm
+        t=t-1
+        if t==0 then
+         m=o.a_s_l+(mm+1)%o.a_m_l
+          t=10
+        end
+      end
+      spr(f,(o.x-room.mx)*8,(o.y-room.my)*8,-1)
   end
-	end
+  end
 end
 
 mpos=nil
 function start_menu() 
  scene=sc_menu
-	mpos=0
+  mpos=0
 end
 function sc_menu()
  draw_explore()
-	
-	local 
-	 mx=20*8
-		my=2*8
-		Mmax=#menu
-	
-	draw_box(mx,my,6,Mmax)
-	for i=1,#menu do 
-	 print(menu[i].lab,mx+4+8,my-2+8*i)
-	end
-	spr(285,mx-4+8,my-4+8*(1+mpos),0)
+  
+  local 
+   mx=20*8
+    my=2*8
+    Mmax=#menu
+  
+  draw_box(mx,my,6,Mmax)
+  for i=1,#menu do 
+   print(menu[i].lab,mx+4+8,my-2+8*i)
+  end
+  spr(285,mx-4+8,my-4+8*(1+mpos),0)
 
  function move(dm)
-	 mpos=(mpos+dm)%Mmax
-	end
-	if btnp(0,1,10) then move(-1) end
-	if btnp(1,1,10) then move(1) end
-	
-	if btnp(B_BACK) then scene=sc_explore end
-	if btnp(B_OK) then menu[mpos+1].a() end
+   mpos=(mpos+dm)%Mmax
+  end
+  if btnp(0,1,10) then move(-1) end
+  if btnp(1,1,10) then move(1) end
+  
+  if btnp(B_BACK) then scene=sc_explore end
+  if btnp(B_OK) then menu[mpos+1].a() end
 end
 
 itms=
-	 { i_hp={480,"an Avocado"}
-		, i_rock={481,"TM Rock Break"}
-		, i_swim={482,"TM Swim"}
-		, i_max={483,"a Mango"}
-		, i_bonus={484,"a Power up token"}
-		, i_file={485,"a Capture File"}
-		, i_poi={265, "a Poison Antidote"}
-		, i_par={266, "a Paralasis Antidote"}
-		, i_con={267, "Headache Pills"}
-		, i_bur={283, "Burn Medication"}
-		, i_see={299, "Glasses"} } 
+   { i_hp={480,"an Avocado"}
+    , i_rock={481,"TM Rock Break"}
+    , i_swim={482,"TM Swim"}
+    , i_max={483,"a Mango"}
+    , i_bonus={484,"a Power up token"}
+    , i_file={485,"a Capture File"}
+    , i_poi={265, "a Poison Antidote"}
+    , i_par={266, "a Paralasis Antidote"}
+    , i_con={267, "Headache Pills"}
+    , i_bur={283, "Burn Medication"}
+    , i_see={299, "Glasses"} } 
 
 function act_itm(i)
  return function(room,oi)
-	 room.obj[oi].a=act_msg("Nothing's here")
-	 player[i]=player[i]+1
-		return act_msg("You found " .. itms[i][2] .. "!")(room,oi)
+   room.obj[oi].a=act_msg("Nothing's here")
+   player[i]=player[i]+1
+    return act_msg("You found " .. itms[i][2] .. "!")(room,oi)
  end
 end
 
@@ -581,27 +606,27 @@ function menu_itms()
 end
 function sc_itms()
  draw_explore()
-	local p=player
+  local p=player
 
-	local 
-	 mx=20*8
-		my=2*8
-		
-	--- XXX Why not #itms?
-	local Mmax=0
-	for itc,iti in pairs(itms) do
-	 Mmax=Mmax+1
-	end
-	
-	draw_box(mx,my,3,Mmax)
-	local i=1
-	for itc,iti in pairs(itms) do
-	 spr(iti[1],mx+8,my-4+8*i)
-		print(p[itc],mx+8+10,my-2+8*i)
-		i=i+1
-	end
-	
-	if btnp(B_BACK) then scene=sc_menu end
+  local 
+   mx=20*8
+    my=2*8
+    
+  --- XXX Why not #itms?
+  local Mmax=0
+  for itc,iti in pairs(itms) do
+   Mmax=Mmax+1
+  end
+  
+  draw_box(mx,my,3,Mmax)
+  local i=1
+  for itc,iti in pairs(itms) do
+   spr(iti[1],mx+8,my-4+8*i)
+    print(p[itc],mx+8+10,my-2+8*i)
+    i=i+1
+  end
+  
+  if btnp(B_BACK) then scene=sc_menu end
 end
 
 function menu_mon()
@@ -609,106 +634,106 @@ function menu_mon()
 end
 function sc_mon()
  draw_explore()
-	
-	local 
-	 mx=5*8
-		my=3*8
-		mw=16
-		mh=5
-	
-	draw_box(mx,my,mw+1,mh+1)
-	if active_mon then
-	 local mn=active_mon
- 	spr(monspr(mn), mx+5, my+5, 0, 4)
-		--- XXX Jack, adjust to taste	
-		print("HP: "..play_mons[mn].hp, mx+5, my+5+4*8)
-		print("XP: "..play_mons[mn].xp, mx+5, my+5+4*8+8)
+  
+  local 
+   mx=5*8
+    my=3*8
+    mw=16
+    mh=5
+  
+  draw_box(mx,my,mw+1,mh+1)
+  if active_mon then
+   local mn=active_mon
+   spr(monspr(mn), mx+5, my+5, 0, 4)
+    --- XXX Jack, adjust to taste  
+    print("HP: "..play_mons[mn].hp, mx+5, my+5+4*8)
+    print("XP: "..play_mons[mn].xp, mx+5, my+5+4*8+8)
  end
-	
+  
  if btnp(B_OK) then
   scene=sc_dex
-	 dex={ draw = draw_explore
- 	    , selected=active_mon
-	     , select = true
-	     , after = function(smn)
-						   if smn then active_mon=smn end
-					 	  scene=sc_mon
-				 	  end }
-	end
-	if btnp(B_BACK) then scene=sc_menu end
+   dex={ draw = draw_explore
+       , selected=active_mon
+       , select = true
+       , after = function(smn)
+               if smn then active_mon=smn end
+               scene=sc_mon
+             end }
+  end
+  if btnp(B_BACK) then scene=sc_menu end
 end
 
 dex=nil
 function menu_dex()
  scene=sc_dex
-	dex={ draw = draw_explore
-	    , selected=active_mon
-	    , select = false
-	    , after = function()
-					   scene=sc_menu
-							end }
+  dex={ draw = draw_explore
+      , selected=active_mon
+      , select = false
+      , after = function()
+             scene=sc_menu
+              end }
 end
 function sc_dex()
  dex.draw()
-	
-	local these_mons=seen_mons
-	if dex.select then
-	 these_mons=play_mons
-	end
+  
+  local these_mons=seen_mons
+  if dex.select then
+   these_mons=play_mons
+  end
 
-	local 
-	 mx=5*8
-		my=3*8
-		mw=16
-		mh=5
-	
-	draw_box(mx,my,mw+1,mh+1)
-	for i=0,mh-1 do
-	 for j=0,mw-1 do
-		 local mn=i*mw+j
-			if mn>=80 then
-			 break
-			end
-			local mmx=mx+(j+1)*8
-			      mmy=my+(i+1)*8
-			local sn=501
-			if these_mons[mn] then
-			 sn=monspr(mn)
-			end
-		 spr(sn,mmx,mmy,0)
-			if (not dex.select and play_mons[mn]) or
-			   (    dex.select and mn == dex.selected) then
-			 spr(502,mmx,mmy,0)
-			end
-		end
-	end
+  local 
+   mx=5*8
+    my=3*8
+    mw=16
+    mh=5
+  
+  draw_box(mx,my,mw+1,mh+1)
+  for i=0,mh-1 do
+   for j=0,mw-1 do
+     local mn=i*mw+j
+      if mn>=80 then
+       break
+      end
+      local mmx=mx+(j+1)*8
+            mmy=my+(i+1)*8
+      local sn=501
+      if these_mons[mn] then
+       sn=monspr(mn)
+      end
+     spr(sn,mmx,mmy,0)
+      if (not dex.select and play_mons[mn]) or
+         (    dex.select and mn == dex.selected) then
+       spr(502,mmx,mmy,0)
+      end
+    end
+  end
 
  function move(dx, dy)
-	 if not dex.select then return end
-		local dsx = dex.selected % 16
-		local dsy = dex.selected // 16
-		local ndsx = (dsx + dx) % 16
-		local ndsy = (dsy + dy) % 5
-		--- XXX adjust when there are more mons
-		dex.selected = (ndsy * 16 + ndsx) % 80
-	end
-	if btnp(0,1,10) then move(0,-1) end
-	if btnp(1,1,10) then move(0,1) end
-	if btnp(2,1,10) then move(-1,0) end
-	if btnp(3,1,10) then move(1,0) end
- 	
-	if btnp(B_BACK) then dex.after(nil) end
-	if btnp(B_OK) then 
-	 local sel = dex.selected
-		if these_mons[sel] then
- 	 dex.after(sel)
-		end
-	end
+   if not dex.select then return end
+    local dsx = dex.selected % 16
+    local dsy = dex.selected // 16
+    local ndsx = (dsx + dx) % 16
+    local ndsy = (dsy + dy) % 5
+    --- XXX adjust when there are more mons
+    dex.selected = (ndsy * 16 + ndsx) % 80
+  end
+  if btnp(0,1,10) then move(0,-1) end
+  if btnp(1,1,10) then move(0,1) end
+  if btnp(2,1,10) then move(-1,0) end
+  if btnp(3,1,10) then move(1,0) end
+   
+  if btnp(B_BACK) then dex.after(nil) end
+  if btnp(B_OK) then 
+   local sel = dex.selected
+    if these_mons[sel] then
+    dex.after(sel)
+    end
+  end
 end
 
 menu={{lab="ITEMS",a=menu_itms}
      ,{lab="MON",a=menu_mon}
-					,{lab="DEX",a=menu_dex}}
+          ,{lab="DEX",a=menu_dex}}
 
 battle_scrs = {}
 
@@ -755,46 +780,46 @@ atk_poison={name="Poison", type=t_corrupt,
 
 atk_fire={name="Flame", type=t_fire,
            dmg=30, s=486, e=e_poison}
-											
+                      
 atk_air={name="Fly", type=t_air,
            dmg=30, s=493, e=nil}
-											
+                      
 atk_bubble={name="Beam", type=t_water,
            dmg=30, s=487, e=nil}
 
 atk_bite={name="Bite", type=t_normal,
            dmg=30, s=504, e=nil}
-										
+                    
 atk_dragon={name="Pulse", type=t_dragon,
            dmg=50, s=510, e=e_confuse}
-											
+                      
 atk_zap={name="Zap Bolt", type=t_air,
            dmg=30, s=492, e=a_paralize}
-											
+                      
 atk_Cfire={name="Cor Flame", type=t_corrupt,
            dmg=30, s=489, e=e_burn}
-											
+                      
 atk_Cbubble={name="Cor Bubble", type=t_corrupt,
            dmg=30, s=490, e=nil}
-											
+                      
 atk_punch={name="Karate Chop", type=t_earth,
            dmg=40, s=494, e=e_confuse}
-										
+                    
 atk_rock={name="Rock Throw", type=t_earth,
            dmg=40, s=495, e=nil}
-											
+                      
 atk_fear={name="Fear", type=t_normal,
            dmg=0, s=506, e=nil}
-											
+                      
 atk_cut={name="Slash", type=t_normal,
            dmg=30, s=507, e=nil}
-											
+                      
 atk_swipe={name="Fury Swipe", type=t_normal, --This ATK can happen between 1-4 times in arow
            dmg=50, s=508, e=nil} --Ok this one is weird, It technacly has Two diffrent ATK spries but for now I'll Just put down one
 
 atk_vamp={name="Vamp Bite", type=t_corrupt,
            dmg=20, s=399, e=e_vamp}
-											
+                      
 atk_glitch={name="ERROR", type=t_glitch,
            dmg=30, s=398, e=nil}
 
@@ -807,160 +832,160 @@ mons[0]={name="Blobb", hp=60, xp=100, types={t_grass},
 
 mons[1]={name="Blobbo", hp=100, xp=100 ,types={t_grass},
          atks={{atk_grass,2}, {atk_poison,1}}}
-									
+                  
 mons[2]={name="Blord", hp=140, xp=-1 ,types={t_grass},
          atks={{atk_grass,3}, {atk_poison,2}}}
 
 mons[3]={name="Flegg", hp=50, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_air,1}}}
-									
+                  
 mons[4]={name="Fyrunt", hp=90, xp=100,types={t_fire},
          atks={{atk_fire,1}, {atk_bite,1}}}
-									
+                  
 mons[5]={name="Fyroar", hp=130, xp=-1, types={t_dragon},
          atks={{atk_fire,1}, {atk_bite,2}}}
 
 mons[6]={name="Pirrah", hp=60, xp=100, types={t_water},
          atks={{atk_bubble,1}, {atk_bite,1}}}
-									
+                  
 mons[7]={name="Pirrachomp", hp=100, xp=100,types={t_water},
          atks={{atk_bubble,2}, {atk_bite,2}}}
-									
+                  
 mons[8]={name="Pirgnash", hp=140, xp=-1, types={t_water},
          atks={{atk_bubble,3}, {atk_bite,2}}}
-									
+                  
 mons[9]={name="Bater", hp=40, xp=100,types={t_corrupt},
          atks={{atk_vamp,1}, {atk_bite,1}}}
-									
+                  
 mons[10]={name="Batger", hp=80, xp=-1, types={t_corrupt},
          atks={{atk_vamp,2}, {atk_bite,2}}}
-									
+                  
 mons[11]={name="GIode", hp=60, xp=100, types={t_earth},
          atks={{atk_punch,1}, {atk_rock,1}}}
-									
+                  
 mons[12]={name="GIger", hp=100, xp=-1, types={t_earth},
          atks={{atk_punch,2}, {atk_rock,2}}}
-									
+                  
 mons[13]={name="Cink", hp=40, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_fear,1}}}
-									
+                  
 mons[14]={name="Compi", hp=80, xp=-1, types={t_normal},
          atks={{atk_swipe,2}, {atk_fear,1}}}
-									
+                  
 mons[15]={name="Coglow", hp=40, xp=-1, types={t_earth},
          atks={{atk_rock,1}, {atk_zap,1}}}
-									
+                  
 mons[16]={name="Reapo", hp=60, xp=100, types={t_spirit},
          atks={{atk_cut,1}, {atk_vamp,1}}}
-									
+                  
 mons[17]={name="Reaplur", hp=100, xp=-1, types={t_spirit},
          atks={{atk_cut,2}, {atk_vamp,1}}}
-									
+                  
 mons[18]={name="Potlil", hp=60, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_bite,1}}}
-									
+                  
 mons[19]={name="Venaomp", hp=100, xp=100, types={t_grass},
          atks={{atk_poison,1}, {atk_bite,1}}}
-								 
+                 
 mons[20]={name="Carvenor", hp=140, xp=-1, types={t_grass},
          atks={{atk_poison,1.5}, {atk_bite,2}}}
-									
+                  
 mons[21]={name="Corruplil", hp=60, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,1}}}
-									
+                  
 mons[22]={name="Corrvena", hp=100, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,2}}}
-									
+                  
 mons[23]={name="Corrvenor", hp=140, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_bite,3}}}
 
 mons[24]={name="Toxobb", hp=60, xp=100, types={t_corrupt},
          atks={{atk_poison,1}}}
-									
+                  
 mons[25]={name="Toxobbo", hp=100, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_vamp,1}}}
-									
+                  
 mons[26]={name="Toxord", hp=140, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_vamp,2}}}
-									
+                  
 mons[27]={name="Flyrunt", hp=40, xp=100, types={t_air},
          atks={{atk_air,1}, {atk_zap,1}}}
-									
+                  
 mons[28]={name="Flyig", hp=80, xp=100, types={t_air},
          atks={{atk_air,2}, {atk_zap,1}}}
-									
+                  
 mons[29]={name="Flyoar", hp=120, xp=-1, types={t_air},
          atks={{atk_air,3}, {atk_cut,1}}}
-									
+                  
 mons[30]={name="Legi", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_vamp,1}}}
-									
+                  
 mons[31]={name="Legonite", hp=80, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_vamp,1}}}
-									
+                  
 mons[32]={name="Majat", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_vamp,1}}}
-									
+                  
 mons[33]={name="Majite", hp=80, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_vamp,1}}}
-									
+                  
 mons[34]={name="Voodoll", hp=60, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_cut,1}}}
-							  
+                
 mons[35]={name="Voorip", hp=100, xp=100, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,2}}}
-									
+                  
 mons[36]={name="Ripoll", hp=140, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,3}}}
-									
+                  
 mons[37]={name="Mallo", hp=60, xp=-1, types={t_normal},
          atks={{atk_swipe,1} }}
-									
+                  
 mons[38]={name="Erace", hp=100, xp=-1, types={t_earth},
          atks={{atk_rock,2}, {atk_zap,2}}}
-									
+                  
 mons[39]={name="Erion", hp=100, xp=-1, types={t_earth},
          atks={{atk_fire,2}, {atk_rock,2}}}
-									
+                  
 mons[40]={name="Eronze", hp=100, xp=-1, types={t_fire},
          atks={{atk_fire,2}, {atk_cut,2}}}
 
 mons[41]={name="Boxsheell", hp=60, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_cut,1}}}
-									
+                  
 mons[42]={name="Boxcrab", hp=100, xp=-1, types={t_normal},
          atks={{atk_swipe,2}, {atk_cut,2}}}
-									
+                  
 mons[43]={name="Floatamus", hp=40, xp=100, types={t_grass},
          atks={{atk_grass,1}, {atk_bubble,1}}}
-									
+                  
 mons[44]={name="Hippadrift", hp=80, xp=-1, types={t_gras},
          atks={{atk_grass,2}, {atk_bubble,2}}}
-									
+                  
 mons[45]={name="Phlask", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,0.5}, {atk_bite,1}}}
-									
+                  
 mons[46]={name="Noxial", hp=80, xp=100, types={t_corrupt},
          atks={{atk_poison,1}, {atk_bite,2}}}
-									
+                  
 mons[47]={name="Fumighast", hp=120, xp=-1, types={t_corrupt},
          atks={{atk_poison,2}, {atk_bite,3}}}
-									
+                  
 mons[48]={name="Pottle", hp=60, xp=100, types={t_earth},
          atks={{atk_grass,1}, {atk_rock,1}}}
-									
+                  
 mons[49]={name="Trikotta", hp=100, xp=100, types={t_earth},
          atks={{atk_grass,2}, {atk_rock,2}}}
-									
+                  
 mons[50]={name="Terrocortta", hp=140, xp=-1, types={t_earth},
          atks={{atk_grass,3}, {atk_rock,3}}}
-									
+                  
 mons[51]={name="Kertruffle", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,.5}}}
-									
+                  
 mons[52]={name="Masshroom", hp=80, xp=-1, types={t_corrupt,t_grass},
          atks={{atk_poison,1}, {atk_grass,1}}}
-									
+                  
 mons[53]={name="Lumishroom", hp=80, xp=-1, types={t_corrupt,t_air},
          atks={{atk_poison,1}, {atk_zap,1}}}
 
@@ -969,1138 +994,1138 @@ mons[54]={name="Perishroom", hp=80, xp=-1, types={t_corrupt,t_spirit},
 
 mons[55]={name="Dopple", hp=40, xp=100, types={t_normal},
          atks={{atk_swipe,1}, {atk_bite,1}}}
-									
+                  
 mons[56]={name="Artifish", hp=80, xp=-1, types={t_normal},
          atks={{atk_cut,1}, {atk_bite,2}}}
-								
+                
 mons[57]={name="Toxito", hp=40, xp=100, types={t_corrupt},
          atks={{atk_poison,0.5}, {atk_vamp,1}}}
-									
+                  
 mons[58]={name="Sanguito", hp=80, xp=-1, types={t_corrupt},
          atks={{atk_poison,1}, {atk_vamp,2}}}
 
 mons[59]={name="Loceam", hp=60, xp=100, types={t_fire},
          atks={{atk_fire,1}, {atk_bite,1}}}
-									
+                  
 mons[60]={name="Flamain", hp=100, xp=100, types={t_fire},
          atks={{atk_fire,2}, {atk_bite,2}}}
-									
+                  
 mons[61]={name="Inferail", hp=140, xp=-1, types={t_fire},
          atks={{atk_fire,3}, {atk_zap,2}}}
-									
+                  
 mons[62]={name="Dollreap", hp=100, xp=-1, types={t_spirit},
          atks={{atk_fear,2}, {atk_cut,1}}}
-									
+                  
 mons[63]={name="Flajel", hp=60, xp=-1, types={t_normal},
          atks={{atk_grass,1}, {atk_bubble,1}, {atk_fire,1}}}
-									
+                  
 mons[64]={name="Inkwid", hp=40, xp=100, types={t_corrupt,t_water},
          atks={{atk_poison,0.5}, {atk_spurt,1}}}
-									
+                  
 mons[65]={name="Inkokt", hp=80, xp=-1, types={t_corrupt,t_water},
          atks={{atk_poison,1}, {atk_spurt,2}}}
-									
+                  
 mons[66]={name="Loneleaf", hp=40, xp=100, types={t_spirit,t_grass},
          atks={{atk_grass,1}, {atk_fear,1}}}
 
 mons[67]={name="Forthorn", hp=80, xp=-1, types={t_spirit,t_grass},
          atks={{atk_grass,2}, {atk_fear,2}}}
-									
+                  
 mons[68]={name="Orelett", hp=60, xp=100, types={t_earth,t_dragon},
          atks={{atk_rock,1}, {atk_dragon,1}}}
-									
+                  
 mons[69]={name="Anvelid", hp=100, xp=100, types={t_earth,t_dragon},
          atks={{atk_rock,2}, {atk_dragon,2}}}
-									
+                  
 mons[70]={name="Margoplex", hp=140, xp=-1, types={t_earth,t_dragon},
          atks={{atk_rock,3}, {atk_dragon,3}}}
-									
+                  
 mons[71]={name="Phlantern", hp=40, xp=100, types={t_spirit},
          atks={{atk_fear,1}, {atk_fire,1}}}
-									
+                  
 mons[72]={name="Lanturgheist", hp=80, xp=100, types={t_spirit},
          atks={{atk_fear,2}, {atk_fire,2}}}
 
 mons[73]={name="Spiriturn", hp=120, xp=-1, types={t_spirit},
          atks={{atk_fear,3}, {atk_fire,3}}}
-									
+                  
 mons[74]={name="Phlanrup", hp=40, xp=100, types={t_spirit,t_corrupt},
          atks={{atk_fear,1},{atk_Cfire,1}}}
-									
+                  
 mons[75]={name="Corrlamp", hp=80, xp=100, types={t_spirit,t_corrupt},
          atks={{atk_fear,2},{atk_Cfire,2}}}
-									
+                  
 mons[76]={name="Corrturn", hp=120, xp=-1, types={t_spirit,t_corrupt},
          atks={{atk_fear,3},{atk_Cfire,3}}}
-									
+                  
 mons[77]={name="Dreadlone", hp=60, xp=100, types={t_corrupt},
          atks={{atk_grass,1},{atk_fear,1}}}
-							
+              
 mons[78]={name="Corrthorn", hp=120, xp=-1, types={t_corrupt},
          atks={{atk_grass,2},{atk_fear,2}}}
-									
+                  
 mons[79]={name="Entree", hp=80, xp=-1, types={t_grass},
          atks={{atk_grass,2}}}
-									
+                  
 mons[109]={name="???", hp=100, xp=-1, types={t_glitch},
          atks={{atk_glitch,1} }}
-									
+                  
 function RoomTables() end
 
 rooms[1]={  
  mx=0,
-	my=17,
-	mons={0,9,18,43,51,55,57,24,79,71,27,109},
-	obj={
-	[1]={
+  my=17,
+  mons={0,9,18,43,51,55,57,24,79,71,27,109},
+  obj={
+  [1]={
   x=1,
-		y=29,
-		a=act_msg("The Lab")
-	},
-	[2]={
-	 x=26,
-		y=22,
-		a=act_msg("The Woods->")
-	},
-	[3]={
-	 x=16,
-		y=30,
-		a=act_msg("MT. Monsa -V")
-	} },
-	ent={
-	 [1]={
-	  px=13,
-		 py=21
-			},
-	 [2]={
-	  px=2,
-		 py=29
-			},
-	 [3]={
-	  px=14,
-		 py=33
-			},
-	 [4]={
-	  px=29,
-		 py=20
-		} },
-		ext={
-		 [1]={
-			 x=13,
-				y=21,
-				r=3,
-				e=2
-				},
-			[2]={
-			 x=2,
-				y=28,
-				r=4,
-				e=1 },
-			[3]={
-			 x=14,
-				y=33,
-				r=5,
-				e=1 },
-			[4]={
-			 x=29,
-				y=20,
-				r=13,
-				e=1 }
-		}
+    y=29,
+    a=act_msg("The Lab")
+  },
+  [2]={
+   x=26,
+    y=22,
+    a=act_msg("The Woods->")
+  },
+  [3]={
+   x=16,
+    y=30,
+    a=act_msg("MT. Monsa -V")
+  } },
+  ent={
+   [1]={
+    px=13,
+     py=21
+      },
+   [2]={
+    px=2,
+     py=29
+      },
+   [3]={
+    px=14,
+     py=33
+      },
+   [4]={
+    px=29,
+     py=20
+    } },
+    ext={
+     [1]={
+       x=13,
+        y=21,
+        r=3,
+        e=2
+        },
+      [2]={
+       x=2,
+        y=28,
+        r=4,
+        e=1 },
+      [3]={
+       x=14,
+        y=33,
+        r=5,
+        e=1 },
+      [4]={
+       x=29,
+        y=20,
+        r=13,
+        e=1 }
+    }
 }
 
 rooms[2]={ 
   mx=30,
-	 my=17,
-		mons={},
-		obj={
-		 [1]={
-			 x=40,
-				y=24,
-				a_s_s=367,
-				a_s_l=3,
-				a_m_s=356, --356 for lv 1 372 for lv 2
-				a_m_l=9,
-				a=act_ani("15 Edition game station. From DAD.")
-			}
-		},
-		ent={
-		 [1]={
-		  px=44,
-		  py=26
-			 },
-			[2]={
-			 px=41,
-				py=22
-			} },
-	 ext={
-		 [1]={
-			 x=41,
-				y=22,
-				r=3,
-				e=1
-			} }
+   my=17,
+    mons={},
+    obj={
+     [1]={
+       x=40,
+        y=24,
+        a_s_s=367,
+        a_s_l=3,
+        a_m_s=356, --356 for lv 1 372 for lv 2
+        a_m_l=9,
+        a=act_ani("15 Edition game station. From DAD.")
+      }
+    },
+    ent={
+     [1]={
+      px=44,
+      py=26
+       },
+      [2]={
+       px=41,
+        py=22
+      } },
+   ext={
+     [1]={
+       x=41,
+        y=22,
+        r=3,
+        e=1
+      } }
 }
 
 rooms[3]={ 
   mx=60,
-	 my=17,
-		mons={},
-		obj={
-		 [1]={
-			 x=78,
-				y=23,
-				a=act_msg("'And on todays action news...'")
-			},
-			[2]={
-			x=80,
-			y=25,
-			a=act_itm("i_max")}},
-	 ent={
-		 [1]={
-		  px=75,
-		  py=21
-				},
-			[2]={
-			 px=75,
-				py=28
-			} },
-		ext={
-		 [1]={
-			 x=75,
-				y=28,
-				r=1,
-				e=1
-			},
-			[2]={
-			 x=75,
-				y=21,
-				r=2,
-				e=2 }
-		} 
+   my=17,
+    mons={},
+    obj={
+     [1]={
+       x=78,
+        y=23,
+        a=act_msg("'And on todays action news...'")
+      },
+      [2]={
+      x=80,
+      y=25,
+      a=act_itm("i_max")}},
+   ent={
+     [1]={
+      px=75,
+      py=21
+        },
+      [2]={
+       px=75,
+        py=28
+      } },
+    ext={
+     [1]={
+       x=75,
+        y=28,
+        r=1,
+        e=1
+      },
+      [2]={
+       x=75,
+        y=21,
+        r=2,
+        e=2 }
+    } 
 }
 
 rooms[4]={ 
   mx=0,
-	 my=34,
-		mons={},
-		obj={
-		 [1]={
-			 x=13,
-				y=39,
-				a=act_starter(0)},
-			[2]={
-			 x=14,
-				y=39,
-				a=act_starter(3)},
-			[3]={
-			 x=15,
-				y=39,
-				a=act_starter(6)}},
-		ent={
-		 [1]={
-		  px=14,
-		  py=47
-			} },
-		ext={
-		 [1]={
-			 x=14,
-				y=47,
-				r=1,
-				e=2
-			} }
+   my=34,
+    mons={},
+    obj={
+     [1]={
+       x=13,
+        y=39,
+        a=act_starter(0)},
+      [2]={
+       x=14,
+        y=39,
+        a=act_starter(3)},
+      [3]={
+       x=15,
+        y=39,
+        a=act_starter(6)}},
+    ent={
+     [1]={
+      px=14,
+      py=47
+      } },
+    ext={
+     [1]={
+       x=14,
+        y=47,
+        r=1,
+        e=2
+      } }
 }
 
 rooms[5]={ 
   mx=0,
-	 my=51,
-		mons={0,1,15,18,19,52,57,66,27},
-		obj={
-		 [1]={
-			 x=27,
-				y=65,
-				a=act_itm("i_hp")
-			},
-			[2]={
-			 x=19,
-				y=53,
-				a=act_msg("RIP: BOB, 1920-2020")}
-		},
-		ent={
-		 [1]={
-		  px=14,
-		  py=51
-			 },
-			[2]={
-			 px=24,
-				py=56
-			} },
-		ext={
-		 [1]={
-			 x=14,
-				y=51,
-				r=1,
-				e=3
-				},
-			[2]={
-			 x=24, 
-				y=56,
-				r=6,
-				e=1
-			} }
+   my=51,
+    mons={0,1,15,18,19,52,57,66,27},
+    obj={
+     [1]={
+       x=27,
+        y=65,
+        a=act_itm("i_hp")
+      },
+      [2]={
+       x=19,
+        y=53,
+        a=act_msg("RIP: BOB, 1920-2020")}
+    },
+    ent={
+     [1]={
+      px=14,
+      py=51
+       },
+      [2]={
+       px=24,
+        py=56
+      } },
+    ext={
+     [1]={
+       x=14,
+        y=51,
+        r=1,
+        e=3
+        },
+      [2]={
+       x=24, 
+        y=56,
+        r=6,
+        e=1
+      } }
 }
 
 rooms[6]={ 
   mx=30,
-	 my=34,
-		mons={11,15,68,40,71},
-		obj={
-		[1]={
-		 x=47,
-			y=46,
-			a=act_itm("i_rock")
-		}},
-		ent={
-		 [1]={
-		  px=32,
-		  py=43
-				},
-			[2]={
-			 px=59,
-				py=45
-			} },
-		ext={
-		 [1]={
-			 x=32,
-				y=43,
-				r=5,
-				e=2
-			},
-			[2]={
-			 x=59,
-				y=45,
-				r=7,
-				e=1
-			} }
+   my=34,
+    mons={11,15,68,40,71},
+    obj={
+    [1]={
+     x=47,
+      y=46,
+      a=act_itm("i_rock")
+    }},
+    ent={
+     [1]={
+      px=32,
+      py=43
+        },
+      [2]={
+       px=59,
+        py=45
+      } },
+    ext={
+     [1]={
+       x=32,
+        y=43,
+        r=5,
+        e=2
+      },
+      [2]={
+       x=59,
+        y=45,
+        r=7,
+        e=1
+      } }
 }
 
 rooms[7]={ 
   mx=60,
-	 my=34,
-		mons={11,15,68,40},
-		ent={
-		 [1]={
-		  px=60,
-		  py=45
-				},
-			[2]={
-			 px=87,
-				py=42
-			} },
-		ext={
-		 [1]={
-		  x=60,
-			 y=45,
-			 r=6,
-			 e=2
-		 },
-			[2]={
-			 x=87,
-				y=42,
-				r=8,
-				e=1
-			} } 
+   my=34,
+    mons={11,15,68,40},
+    ent={
+     [1]={
+      px=60,
+      py=45
+        },
+      [2]={
+       px=87,
+        py=42
+      } },
+    ext={
+     [1]={
+      x=60,
+       y=45,
+       r=6,
+       e=2
+     },
+      [2]={
+       x=87,
+        y=42,
+        r=8,
+        e=1
+      } } 
 }
 
 rooms[8]={
  mx=30,
-	my=51,
-	mons={0,1,15,18,19,52,57,66},
-	obj={
-	 [1]={
-	  x=58,
-		 y=61,
-		 a=act_msg("The PLains -V")},
-		[2]={
-		 x=46,
-			y=53,
-			a=act_itm("i_max")
-		} },
-	ent={
-	 [1]={
-		 px=33,
-			py=56
-			},
-		[2]={
-		 px=57,
-			py=67
-		} },
-	ext={
-		[1]={
-		 x=33,
-			y=56,
-			r=7,
-			e=2
-			},
-		[2]={
-		 x=57,
-			y=67,
-			r=9,
-			e=1
-		} }
+  my=51,
+  mons={0,1,15,18,19,52,57,66},
+  obj={
+   [1]={
+    x=58,
+     y=61,
+     a=act_msg("The PLains -V")},
+    [2]={
+     x=46,
+      y=53,
+      a=act_itm("i_max")
+    } },
+  ent={
+   [1]={
+     px=33,
+      py=56
+      },
+    [2]={
+     px=57,
+      py=67
+    } },
+  ext={
+    [1]={
+     x=33,
+      y=56,
+      r=7,
+      e=2
+      },
+    [2]={
+     x=57,
+      y=67,
+      r=9,
+      e=1
+    } }
 }
 
 rooms[9]={ 
   mx=90,
-	 my=34,
-		mons={0,9,18,43,51,55,57},
-		obj={
-		[1]={
-		 x=98,
-		 y=38,
-		 a=act_msg("HEALTH CENTER")},
-		[2]={
-		 x=101,
-			y=36,
-			a=act_itm("i_poi")
-		} },
-		ent={
-		 [1]={
-		  px=93,
-		  py=34},
-			[2]={
-			 px=96,
-				py=38},
-			[3]={
-			 px=117,
-				py=50
-			} },
-		ext={
-		 [1]={
-			 x=93,
-				y=34,
-				r=8,
-				e=2
-			},
-			[2]={
-			 x=96,
-				y=37,
-				r=24,
-				e=1
-			},
-			[3]={
-			 x=117,
-				y=50,
-				r=10,
-				e=1
-			} }
+   my=34,
+    mons={0,9,18,43,51,55,57},
+    obj={
+    [1]={
+     x=98,
+     y=38,
+     a=act_msg("HEALTH CENTER")},
+    [2]={
+     x=101,
+      y=36,
+      a=act_itm("i_poi")
+    } },
+    ent={
+     [1]={
+      px=93,
+      py=34},
+      [2]={
+       px=96,
+        py=38},
+      [3]={
+       px=117,
+        py=50
+      } },
+    ext={
+     [1]={
+       x=93,
+        y=34,
+        r=8,
+        e=2
+      },
+      [2]={
+       x=96,
+        y=37,
+        r=24,
+        e=1
+      },
+      [3]={
+       x=117,
+        y=50,
+        r=10,
+        e=1
+      } }
 }
 
 rooms[10]={ 
   mx=30,
-	 my=68,
-		mons={6,11,41,55,56,64,65},
-		obj={
-		[1]={
-		 x=57,
-			y=81,
-			a=act_itm("i_hp")
-		} },
-		ent={
-		 [1]={
-		  px=57,
-		  py=68},
-			[2]={
-			 px=30,
-				py=75} },
-		ext={
-		 [1]={
-			 x=57,
-				y=68,
-				r=9,
-				e=3
-			},
-			[2]={
-			 x=30,
-				y=75,
-				r=11,
-				e=2
-			} } 
+   my=68,
+    mons={6,11,41,55,56,64,65},
+    obj={
+    [1]={
+     x=57,
+      y=81,
+      a=act_itm("i_hp")
+    } },
+    ent={
+     [1]={
+      px=57,
+      py=68},
+      [2]={
+       px=30,
+        py=75} },
+    ext={
+     [1]={
+       x=57,
+        y=68,
+        r=9,
+        e=3
+      },
+      [2]={
+       x=30,
+        y=75,
+        r=11,
+        e=2
+      } } 
 }
 
 rooms[11]={ 
   mx=0,
-	 my=68,
-		mons={6,7,8,64,65},
-		obj={
-		[1]={
-		 x=7,
-			y=74,
-			a=act_itm("i_max")
-		} },
-		ent={
-		 [1]={
-		  px=12,
-		  py=68
-				},
-			[2]={
-			 px=29,
-				py=75
-				},
-			[3]={
-			 px=17,
-				py=84
-			} },
-		ext={
-		 [1]={
-			 x=12,
-				y=68,
-				r=12,
-				e=2
-			},
-			[2]={
-			 x=29,
-				y=75,
-				r=10,
-				e=2
-			},
-			[3]={
-			x=17,
-			y=84,
-			r=14,
-			e=1
-			} } 
+   my=68,
+    mons={6,7,8,64,65},
+    obj={
+    [1]={
+     x=7,
+      y=74,
+      a=act_itm("i_max")
+    } },
+    ent={
+     [1]={
+      px=12,
+      py=68
+        },
+      [2]={
+       px=29,
+        py=75
+        },
+      [3]={
+       px=17,
+        py=84
+      } },
+    ext={
+     [1]={
+       x=12,
+        y=68,
+        r=12,
+        e=2
+      },
+      [2]={
+       x=29,
+        y=75,
+        r=10,
+        e=2
+      },
+      [3]={
+      x=17,
+      y=84,
+      r=14,
+      e=1
+      } } 
 }
 
 rooms[12]={ 
   mx=60,
-	 my=51,
-		mons={6,11,41,55,56,64,65},
-		ent={
-		 [1]={
-		  px=61,
-		  py=51
-				},
-			[2]={
-			 px=76,
-				py=67
-			} },
-		ext={
-		 [1]={
-			 x=76,
-				y=67,
-				r=11,
-				e=1
-			},
-			[2]={
-			 x=61,
-				y=51,
-				r=13,
-				e=2
-			} }
+   my=51,
+    mons={6,11,41,55,56,64,65},
+    ent={
+     [1]={
+      px=61,
+      py=51
+        },
+      [2]={
+       px=76,
+        py=67
+      } },
+    ext={
+     [1]={
+       x=76,
+        y=67,
+        r=11,
+        e=1
+      },
+      [2]={
+       x=61,
+        y=51,
+        r=13,
+        e=2
+      } }
 }
 
 rooms[13]={ 
   mx=90,
-	 my=17,
-		mons={0,1,2,13,18,19,20,43,45,48,52,54,57,66,67},
-		obj={
-		 [1]={
-		 x=116,
-		 y=30,
-		 a=act_msg("The Beach -V")},
-			[2]={
-			 x=97,
-			 y=22,
-				a=act_itm("i_swim") }},
-		ent={
-		 [1]={
-		  px=90,
-		  py=20},
-			[2]={
-			 px=115,
-				py=33
-			} },
-		ext={
-		 [1]={
-			 x=90,
-				y=20,
-				r=1,
-				e=4
-			},
-			[2]={
-			 x=115,
-				y=33,
-				r=12,
-				e=1
-			} }
+   my=17,
+    mons={0,1,2,13,18,19,20,43,45,48,52,54,57,66,67},
+    obj={
+     [1]={
+     x=116,
+     y=30,
+     a=act_msg("The Beach -V")},
+      [2]={
+       x=97,
+       y=22,
+        a=act_itm("i_swim") }},
+    ent={
+     [1]={
+      px=90,
+      py=20},
+      [2]={
+       px=115,
+        py=33
+      } },
+    ext={
+     [1]={
+       x=90,
+        y=20,
+        r=1,
+        e=4
+      },
+      [2]={
+       x=115,
+        y=33,
+        r=12,
+        e=1
+      } }
 }
 
 rooms[14]={ 
   mx=60,
-	 my=68,
-		mons={0,9,18,43,51,55,57},
-		obj={
-		 [1]={
-			 x=65,
-				y=77,
-				a=act_msg("HEALTH CENTER")	},
-			[2]={
-			 x=85,
-				y=71,
-				a=act_itm("i_file")
-			} },
-		ent={
-		 [1]={
-		  px=73,
-		  py=68},
-			[2]={
-			 px=66,
-				py=77},
-			[3]={
-			 px=85,
-				py=84
-			} },
-		ext={
-		 [1]={
-			 x=73,
-				y=68,
-				r=11,
-				e=3
-			},
-			[2]={
-			 x=66,
-				y=76,
-				r=24,
-				e=1
-			},
-			[3]={
-			 x=85,
-				y=84,
-				r=15,
-				e=1
-			} }
+   my=68,
+    mons={0,9,18,43,51,55,57},
+    obj={
+     [1]={
+       x=65,
+        y=77,
+        a=act_msg("HEALTH CENTER")  },
+      [2]={
+       x=85,
+        y=71,
+        a=act_itm("i_file")
+      } },
+    ent={
+     [1]={
+      px=73,
+      py=68},
+      [2]={
+       px=66,
+        py=77},
+      [3]={
+       px=85,
+        py=84
+      } },
+    ext={
+     [1]={
+       x=73,
+        y=68,
+        r=11,
+        e=3
+      },
+      [2]={
+       x=66,
+        y=76,
+        r=24,
+        e=1
+      },
+      [3]={
+       x=85,
+        y=84,
+        r=15,
+        e=1
+      } }
 }
 
 rooms[15]={ 
   mx=90,
-	 my=68,
-		mons={36,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,77,78,76,75,74,109},
-		obj={
-		 [1]={
-		  x=118,
-		  y=71,
-		  a=act_itm("i_hp")
-		 },
-			[2]={
-			 x=109,
-				y=77,
-				a=act_itm("i_bonus")
-			} },
-		ent={
-		 [1]={
-		  px=93,
-		  py=68
-			},
-			[2]={
-			 px=109,
-				py=84},
-			[3]={
-			 px=114,
-				py=76
-			},
-			[4]={
-			 px=119,
-				py=78
-			} },
-		ext={
-		 [1]={
-			 x=93,
-				y=68,
-				r=14,
-				e=3
-			},
-			[2]={
-			 x=109,
-				y=84,
-				r=16,
-				e=1
-			},
-			[3]={
-			 x=114,
-				y=76,
-				r=19,
-				e=1
-			},
-			[4]={
-			 x=119,
-				y=78,
-				r=18,
-				e=2
-			} }
+   my=68,
+    mons={36,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,77,78,76,75,74,109},
+    obj={
+     [1]={
+      x=118,
+      y=71,
+      a=act_itm("i_hp")
+     },
+      [2]={
+       x=109,
+        y=77,
+        a=act_itm("i_bonus")
+      } },
+    ent={
+     [1]={
+      px=93,
+      py=68
+      },
+      [2]={
+       px=109,
+        py=84},
+      [3]={
+       px=114,
+        py=76
+      },
+      [4]={
+       px=119,
+        py=78
+      } },
+    ext={
+     [1]={
+       x=93,
+        y=68,
+        r=14,
+        e=3
+      },
+      [2]={
+       x=109,
+        y=84,
+        r=16,
+        e=1
+      },
+      [3]={
+       x=114,
+        y=76,
+        r=19,
+        e=1
+      },
+      [4]={
+       x=119,
+        y=78,
+        r=18,
+        e=2
+      } }
 }
 
 rooms[16]={ 
   mx=90,
-	 my=85,
-		mons={109,35,0,9,18,43,36,51,55,57,21,22,23,24,25,26,63,71,62,79,77,78,76,75,74},
-		obj={
-		 [1]={
-			 x=115,
-				y=98,
-				a=act_msg("HEALTH CENTER")},
-			[2]={
-			 x=114,
-				y=86,
-				a=act_itm("i_see")
-			} },
-		ent={
-		 [1]={
-		  px=109,
-		  py=85
-				},
-			[2]={
-			 px=116,
-				py=99
-				},
-			[3]={
-			 px=119,
-				py=93
-			},
-			[4]={
-			 px=90,
-				py=99,
-			} },
-		ext={
-		 [1]={
-			 x=109,
-				y=85,
-				r=15,
-				e=2
-			},
-			[2]={
-			 x=116,
-				y=98,
-				r=24,
-				e=1
-			},
-			[3]={
-			 x=119,
-				y=93,
-				r=17,
-				e=1
-			},
-			[4]={
-			 x=90,
-				y=99,
-				r=25,
-				e=1
-			} }
+   my=85,
+    mons={109,35,0,9,18,43,36,51,55,57,21,22,23,24,25,26,63,71,62,79,77,78,76,75,74},
+    obj={
+     [1]={
+       x=115,
+        y=98,
+        a=act_msg("HEALTH CENTER")},
+      [2]={
+       x=114,
+        y=86,
+        a=act_itm("i_see")
+      } },
+    ent={
+     [1]={
+      px=109,
+      py=85
+        },
+      [2]={
+       px=116,
+        py=99
+        },
+      [3]={
+       px=119,
+        py=93
+      },
+      [4]={
+       px=90,
+        py=99,
+      } },
+    ext={
+     [1]={
+       x=109,
+        y=85,
+        r=15,
+        e=2
+      },
+      [2]={
+       x=116,
+        y=98,
+        r=24,
+        e=1
+      },
+      [3]={
+       x=119,
+        y=93,
+        r=17,
+        e=1
+      },
+      [4]={
+       x=90,
+        y=99,
+        r=25,
+        e=1
+      } }
 }
 
 rooms[17]={ 
   mx=120,
-	 my=85,
-		mons={36,35,109,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,79,77,78,76,75,74},
-		obj={
-		 [1]={
-			 x=121,
-				y=97,
-				a=act_itm("i_hp")
-			} },
-		ent={
-		 [1]={
-		  px=120,
-		  py=93
-				},
-			[2]={
-			 px=144,
-				py=85
-			},
-			[3]={
-			 px=135,
-				py=88} },
-		ext={
-		 [1]={
-			 x=120,
-				y=93,
-				r=16,
-				e=3
-			},
-			[2]={
-			 x=144,
-				y=85,
-				r=18,
-				e=1
-			},
-			[3]={
-			 x=135,
-				y=88,
-				r=28,
-				e=2} }
+   my=85,
+    mons={36,35,109,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,79,77,78,76,75,74},
+    obj={
+     [1]={
+       x=121,
+        y=97,
+        a=act_itm("i_hp")
+      } },
+    ent={
+     [1]={
+      px=120,
+      py=93
+        },
+      [2]={
+       px=144,
+        py=85
+      },
+      [3]={
+       px=135,
+        py=88} },
+    ext={
+     [1]={
+       x=120,
+        y=93,
+        r=16,
+        e=3
+      },
+      [2]={
+       x=144,
+        y=85,
+        r=18,
+        e=1
+      },
+      [3]={
+       x=135,
+        y=88,
+        r=28,
+        e=2} }
 }
 
 rooms[18]={
   mx=120,
-	 my=68,
-		mons={109,36,35,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,79,17,53,77,78,76,75,74},
-		obj={
-		 [1]={
-			 x=121,
-				y=69,
-				a=act_itm("i_bur")
-			} },
-		ent={
-		 [1]={
-		  px=144,
-		  py=84
-				},
-			[2]={
-			 px=120,
-				py=78
-			} },
-		ext={
-		 [1]={
-			 x=144,
-				y=84,
-				r=17,
-				e=2
-			},
-			[2]={
-			 x=120,
-				y=78,
-				r=15,
-				e=4
-			} }
+   my=68,
+    mons={109,36,35,0,9,18,43,51,55,57,21,22,23,24,25,26,63,71,62,79,17,53,77,78,76,75,74},
+    obj={
+     [1]={
+       x=121,
+        y=69,
+        a=act_itm("i_bur")
+      } },
+    ent={
+     [1]={
+      px=144,
+      py=84
+        },
+      [2]={
+       px=120,
+        py=78
+      } },
+    ext={
+     [1]={
+       x=144,
+        y=84,
+        r=17,
+        e=2
+      },
+      [2]={
+       x=120,
+        y=78,
+        r=15,
+        e=4
+      } }
 }
 
 rooms[19]={ 
   mx=120,
-	 my=51,
-		mons={},
-		ent={
-		 [1]={
-		  px=141,
-		  py=63
-				},
-			[2]={
-			 px=127,
-				py=56
-			} },
-		ext={
-		 [1]={
-			 x=141,
-				y=63,
-				r=15,
-				e=3
-			},
-			[2]={
-			 x=127,
-				y=56,
-				r=20,
-				e=1
-			} }
+   my=51,
+    mons={},
+    ent={
+     [1]={
+      px=141,
+      py=63
+        },
+      [2]={
+       px=127,
+        py=56
+      } },
+    ext={
+     [1]={
+       x=141,
+        y=63,
+        r=15,
+        e=3
+      },
+      [2]={
+       x=127,
+        y=56,
+        r=20,
+        e=1
+      } }
 }
 
 rooms[20]={ 
   mx=120,
-	 my=34,
-		mons={},
-		obj={
-		 [1]={
-			 x=122,
-				y=37,
-				a=act_itm("i_max")
-			} },
-		ent={
-		 [1]={
-		  px=127,
-		  py=37
-				},
-			[2]={
-			 px=138,
-				py=41
-			} },
-		ext={
-		 [1]={
-			 x=127,
-				y=37,
-				r=19,
-				e=2
-			},
-			[2]={
-			 x=138,
-				y=41,
-				r=21,
-				e=1
-			} }
+   my=34,
+    mons={},
+    obj={
+     [1]={
+       x=122,
+        y=37,
+        a=act_itm("i_max")
+      } },
+    ent={
+     [1]={
+      px=127,
+      py=37
+        },
+      [2]={
+       px=138,
+        py=41
+      } },
+    ext={
+     [1]={
+       x=127,
+        y=37,
+        r=19,
+        e=2
+      },
+      [2]={
+       x=138,
+        y=41,
+        r=21,
+        e=1
+      } }
 }
 
 rooms[21]={ 
   mx=120,
-	 my=17,
-		mons={},
-		ent={
-		 [1]={
-		  px=139,
-		  py=30
-				},
-			[2]={
-			 px=141,
-				py=21
-			} },
-		ext={
-		 [1]={
-			 x=139,
-				y=30,
-				r=20,
-				e=2
-			},
-			[2]={
-			 x=141,
-				y=21,
-				r=22,
-				e=1
-			} }
+   my=17,
+    mons={},
+    ent={
+     [1]={
+      px=139,
+      py=30
+        },
+      [2]={
+       px=141,
+        py=21
+      } },
+    ext={
+     [1]={
+       x=139,
+        y=30,
+        r=20,
+        e=2
+      },
+      [2]={
+       x=141,
+        y=21,
+        r=22,
+        e=1
+      } }
 }
 
 rooms[22]={ 
   mx=150,
-	 my=17,
-		mons={38,39,40,20,79,109},
-		obj={
-		 [1]={
-			 x=162,
-				y=26,
-				a=act_msg("HEALTH CENTER")
-			},
-			[2]={
-			 x=170,
-				y=20,
-				a=act_itm("i_bonus")
-			} },
-		ent={
-		 [1]={
-		  px=160,
-		  py=20
-				},
-			[2]={
-			 px=160,
-				py=27
-			 },
-			[3]={
-			 px=173,
-				py=33
-			} },
-		ext={
-		 [1]={
-			 x=160,
-				y=20,
-				r=21,
-				e=2
-			},
-			[2]={
-			 x=160,
-				y=26,
-				r=24,
-				e=1
-			},
-			[3]={
-			 x=173,
-				y=33,
-				r=23,
-				e=1
-			} }
+   my=17,
+    mons={38,39,40,20,79,109},
+    obj={
+     [1]={
+       x=162,
+        y=26,
+        a=act_msg("HEALTH CENTER")
+      },
+      [2]={
+       x=170,
+        y=20,
+        a=act_itm("i_bonus")
+      } },
+    ent={
+     [1]={
+      px=160,
+      py=20
+        },
+      [2]={
+       px=160,
+        py=27
+       },
+      [3]={
+       px=173,
+        py=33
+      } },
+    ext={
+     [1]={
+       x=160,
+        y=20,
+        r=21,
+        e=2
+      },
+      [2]={
+       x=160,
+        y=26,
+        r=24,
+        e=1
+      },
+      [3]={
+       x=173,
+        y=33,
+        r=23,
+        e=1
+      } }
 }
 
 rooms[24]={ 
   mx=90,
-	 my=51,
-		mob={},
-		obj={}, -- XXX This room will have an obj, but it will require extra code, for now we'll leave it empty XXX
-		ent={
-		 [1]={
-		  px=104,
-		  py=62
-				} },
-		weird=1,
-		ext={
-		  [1]={
-				 x=104,
-					y=62,
-					r=nil,
-					e=nil } } 
+   my=51,
+    mob={},
+    obj={}, -- XXX This room will have an obj, but it will require extra code, for now we'll leave it empty XXX
+    ent={
+     [1]={
+      px=104,
+      py=62
+        } },
+    weird=1,
+    ext={
+      [1]={
+         x=104,
+          y=62,
+          r=nil,
+          e=nil } } 
 }
 
 rooms[23]={ 
   mx=150,
-	 my=34,
-		mons={38,39,40,20,79,17,73,109},
-		ent={
-		 [1]={
-		  px=173,
-		  py=34
-				} },
-		ext={
-		 [1]={
-			 x=173,
-				y=34,
-				r=22,
-				e=3
-			} }
+   my=34,
+    mons={38,39,40,20,79,17,73,109},
+    ent={
+     [1]={
+      px=173,
+      py=34
+        } },
+    ext={
+     [1]={
+       x=173,
+        y=34,
+        r=22,
+        e=3
+      } }
 }
 
 rooms[25]={ 
   mx=60,
-	 my=85,
-		mons={0,9,18,43,51,55,57,21,22,23,79,24,25,26,63,71,62,29,28,31},
-		obj={
-		 [1]={
-			 x=61,
-				y=87,
-				a=act_itm("i_con")},
-			[2]={
-			 x=66,
-				y=96,
-				a=act_msg("The Abandoned Mine")} },
-		ent={
-		 [1]={
-		  px=89,
-		  py=99
-				},
-			[2]={
-			 px=62,
-				py=96,
-			} },
-		ext={
-		 [1]={
-			 x=89,
-				y=99,
-				r=15,
-				e=4
-			},
-			[2]={
-			 x=62,
-				y=96,
-				r=26,
-				e=1 } }
+   my=85,
+    mons={0,9,18,43,51,55,57,21,22,23,79,24,25,26,63,71,62,29,28,31},
+    obj={
+     [1]={
+       x=61,
+        y=87,
+        a=act_itm("i_con")},
+      [2]={
+       x=66,
+        y=96,
+        a=act_msg("The Abandoned Mine")} },
+    ent={
+     [1]={
+      px=89,
+      py=99
+        },
+      [2]={
+       px=62,
+        py=96,
+      } },
+    ext={
+     [1]={
+       x=89,
+        y=99,
+        r=15,
+        e=4
+      },
+      [2]={
+       x=62,
+        y=96,
+        r=26,
+        e=1 } }
 }
 
 rooms[26]={ 
   mx=150,
-	 my=85,
-		mons={45,68,32,16,79},
-		ent={
-		 [1]={
-		  px=156,
-		  py=91
-				},
-			[2]={
-			 px=170,
-				py=85} },
-		ext={
-		 [1]={
-			 x=156,
-				y=91,
-				r=25,
-				e=2
-			},
-			[2]={
-			 x=170,
-				y=85,
-				r=27,
-				e=1} }
+   my=85,
+    mons={45,68,32,16,79},
+    ent={
+     [1]={
+      px=156,
+      py=91
+        },
+      [2]={
+       px=170,
+        py=85} },
+    ext={
+     [1]={
+       x=156,
+        y=91,
+        r=25,
+        e=2
+      },
+      [2]={
+       x=170,
+        y=85,
+        r=27,
+        e=1} }
 }
 
 rooms[27]={ 
   mx=150,
-	 my=68,
-		mons={45,68,32,16,72,79},
-		obj={
-		 [1]={
-			 x=169,
-			 y=72,
-			 a=act_itm("i_file")} },
-		ent={
-		 [1]={
-		  px=170,
-		  py=84
-				},
-			[2]={
-			 px=156,
-				py=84},
-			[3]={
-			 px=156,
-				py=68} },
-		ext={
-		 [1]={
-			 x=170,
-				y=84,
-				r=26,
-				e=2
-			},
-			[2]={
-			 x=156,
-				y=84,
-				r=29,
-				e=1
-			},
-			[3]={
-			 x=156,
-				y=68,
-				r=28,
-				e=1
-			} }
+   my=68,
+    mons={45,68,32,16,72,79},
+    obj={
+     [1]={
+       x=169,
+       y=72,
+       a=act_itm("i_file")} },
+    ent={
+     [1]={
+      px=170,
+      py=84
+        },
+      [2]={
+       px=156,
+        py=84},
+      [3]={
+       px=156,
+        py=68} },
+    ext={
+     [1]={
+       x=170,
+        y=84,
+        r=26,
+        e=2
+      },
+      [2]={
+       x=156,
+        y=84,
+        r=29,
+        e=1
+      },
+      [3]={
+       x=156,
+        y=68,
+        r=28,
+        e=1
+      } }
 }
 
 rooms[28]={ 
   mx=150,
-	 my=51,
-		mons={45,68,32,16,72,34,35,36},
-		ent={
-		 [1]={
-		  px=156,
-		  py=67
-				},
-			[2]={
-			 px=174,
-				py=60} },
-		ext={
-		 [1]={
-			 x=156,
-				y=67,
-				r=27,
-				e=3
-			},
-			[2]={
-			 x=174,
-				y=60,
-				r=17,
-				e=3
-			} }
+   my=51,
+    mons={45,68,32,16,72,34,35,36},
+    ent={
+     [1]={
+      px=156,
+      py=67
+        },
+      [2]={
+       px=174,
+        py=60} },
+    ext={
+     [1]={
+       x=156,
+        y=67,
+        r=27,
+        e=3
+      },
+      [2]={
+       x=174,
+        y=60,
+        r=17,
+        e=3
+      } }
 }
 
 rooms[29]={ 
   mx=180,
-	 my=68,
-		mons={64,65,54,8,7,55,56},
-		obj={
-		 [1]={
-			 x=196,
-			 y=79,
-			 a=act_itm("i_file")} },
-		ent={
-		 [1]={
-		  px=188,
-		  py=69
-			} },
-		ext={
-		 [1]={
-			 x=188,
-				y=69,
-				r=27,
-				e=2
-	  } }
+   my=68,
+    mons={64,65,54,8,7,55,56},
+    obj={
+     [1]={
+       x=196,
+       y=79,
+       a=act_itm("i_file")} },
+    ent={
+     [1]={
+      px=188,
+      py=69
+      } },
+    ext={
+     [1]={
+       x=188,
+        y=69,
+        r=27,
+        e=2
+    } }
 }
 
 if not DEBUG then
@@ -2126,7 +2151,7 @@ end
 -- 013:bb7777bbb7fb517b7eb151e11b5515b511511b5050110105b500002bbb4121bb
 -- 014:94444494444949944499999449499f949499f994999999944999994444994444
 -- 015:a77777a7777a7aa777aaaaa77a7aafa7a7aafaa7aaaaaaa77aaaaa7777aa7777
--- 016:aaaaaaaaa777777aa706007aa7ef807aa70d007aa700007aaa7777aaaaa3aaaa
+-- 016:aaaaaaaaa777777aa700007aa7ff0f7aa700007aa706007aaa7777aaaaa3aaaa
 -- 017:2999999a2299999922444444224cccc4224c99c4224cccc42a444444aa4aaaa4
 -- 018:aaaaaaaaaaaaaaaaaaaaaaaaa4aaaa4aa424424aa442244aa41ff14aaad11daa
 -- 019:b44bb44b9999999944444444422424244242242444444444b22bb22b52255225
@@ -2315,14 +2340,14 @@ end
 -- 210:00aaaa000affffa0af7ff7faaff77ffaaff77ffaaf7ff7fa0affffa000aaaa00
 -- 211:aaaaaaaaaaaaaaaaaeaeaeae2222222233333333323223233223232333333333
 -- 212:00444000044444000444a44044444a4474444444744444440744444000774400
--- 215:0aaaaaa00aaaaaa0000aa000000aa000000aa000aa0aa000aaaaa0000aaa0000
--- 216:aaaaaaa0aaaaaaa0aa000aa0aa000aa0aaaaaaa0aaaaaaa0aa000aa0aa000aa0
--- 217:0aaaaaa0aaaaaaa0aa000000aa000000aa000000aa000000aaaaaaa00aaaaaa0
--- 218:aa00aa00aa00aa00aa0aaa00aaaaa000aaaaa000aa0aaa00aa00aa00aa00aa00
--- 219:aaaaaaa0aaaaaaa0aa0a0aa0aa0a0aa0aa000aa0aa000aa0aa000aa0aa000aa0
+-- 215:aaaaaaa0aaaaaaa00000aaa0000aaa0000aaa0000aaa0000aaaaaaa0aaaaaaa0
+-- 216:0aaaaa00aaaaaaa0aa000aa0aa000aa0aa000aa0aa000aa0aaaaaaa00aaaaa00
+-- 217:aaaaaaa0aaaaaaa000aaa00000aaa00000aaa00000aaa000aaaaaaa0aaaaaaa0
+-- 218:aaaaaa00aaaaaaa0aa000aa0aa000aa0aa000aa0aa000aa0aaaaaaa0aaaaaa00
+-- 219:aaaaaaa0aaaaaaa000aaa00000aaa00000aaa00000aaa000aaaaaaa0aaaaaaa0
 -- 220:0aaaaa00aaaaaaa0aa000aa0aa000aa0aa000aa0aa000aa0aaaaaaa00aaaaa00
--- 221:0aa000aa0aa000aa0aaa00aa0aaaa0aa0aaaaaaa0aa0aaaa0aa00aaa0aa000aa
--- 222:0aaaaaa0aaaaaaa0aa000000aaaaaaa00aaaaaaa000000aa0aaaaaaa0aaaaaa0
+-- 221:aa000aa0aa000aa0aaa00aa0aaaa0aa0aaaaaaa0aa0aaaa0aa00aaa0aa000aa0
+-- 222:0aaaaa00aaaaaa00aa000000aaaaaa000aaaaaa000000aa00aaaaaa00aaaaa00
 -- 223:4444444444444444444444444444444444444444444444444444444444444444
 -- 224:aaaaaaaaaaaaaaaaaaaeaeaeaae22222aaa23333aae23223aaa23233aae23333
 -- 225:000dd00000dddd000dddfdd0dddddfdddddddddd1ddddddd1ddddddd011dddd0
@@ -2975,34 +3000,34 @@ end
 -- 097:0999999909ccccc00cc1c1c00ccc8cff02b2b0fa02c2bca0022b400000505000
 -- 098:0844444404c1c1c004c1c1c004ccccc00066600000c66c000066600000202000
 -- 099:0844444404ccccc004c1c1c040cc8cc00066600000c66c000066600000202000
--- 100:aaaaaaaaa777777aa7f0007aa7aa007aa760007aa700007aaa7777aaaaa3aaaa
--- 101:aaaaaaaaa777777aa7f0007aa7aa007aa700007aa700007aaa7777aaaaa3aaaa
--- 102:aaaaaaaaa777777aa7f0007aa7aa007aa760007aa700007aaa7777aaaaa3aaaa
--- 103:aaaaaaaaa777777aa7f0007aa7aa007aa700007aa700007aaa7777aaaaa3aaaa
--- 104:aaaaaaaaa777777aa7f0007aa7aa007aa760007aa700007aaa7777aaaaa3aaaa
--- 105:aaaaaaaaa777777aa7f0007aa7aa007aa700007aa700007aaa7777aaaaa3aaaa
--- 106:aaaaaaaaa777777aa7f0007aa7aa007aa760007aa700007aaa7777aaaaa3aaaa
--- 107:aaaaaaaaa777777aa7f0007aa7aa007aa700007aa700007aaa7777aaaaa3aaaa
--- 108:aaaaaaaaa777777aa7f0007aa7aa007aa760007aa700007aaa7777aaaaa3aaaa
--- 109:aaaaaaaaa777777aa7090b7aa790b07aa70b037aa7b0307aaa7777aaaaa3aaaa
--- 110:aaaaaaaaa777777aa769eb7aa79ebd7aa7ebd37aa7bd327aaa7777aaaaa3aaaa
--- 111:aaaaaaaaa777777aa760e07aa70e0d7aa7e0d07aa70d027aaa7777aaaaa3aaaa
+-- 100:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7bb7aa7bb447aaa7777aaaaa3aaaa
+-- 101:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7dbbb7aa7b4447aaa7777aaaaa3aaaa
+-- 102:aaaaaaaaa777777aa7dddd7aa7d7dd7aa7bbbb7aa744447aaa7777aaaaa3aaaa
+-- 103:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7bbbb7aa744447aaa7777aaaaa3aaaa
+-- 104:aaaaaaaaa777777aa7dddd7aa7d7dd7aa7bbbd7aa7444b7aaa7777aaaaa3aaaa
+-- 105:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7bbbd7aa7444b7aaa7777aaaaa3aaaa
+-- 106:aaaaaaaaa777777aa7dddd7aa7dddd7aa7b7dd7aa74bbb7aaa7777aaaaa3aaaa
+-- 107:aaaaaaaaa777777aa7dddd7aa7dddd7aa7dd7d7aa7bbbb7aaa7777aaaaa3aaaa
+-- 108:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7db7aa7bbb47aaa7777aaaaa3aaaa
+-- 109:aaaaaaaaa777777aa7dddd7aa7ffff7aa7d7bb7aa7ffff7aaa7777aaaaa3aaaa
+-- 110:aaaaaaaaa777777aa7ffff7aa7ffff7aa7ffff7aa7ffff7aaa7777aaaaa3aaaa
+-- 111:aaaaaaaaa777777aa7ffff7aa7dddd7aa7ffff7aa7bb447aaa7777aaaaa3aaaa
 -- 112:0eeeeeee0ec5c5c00ec5c5c00eeccce00046400000c64c000044477000202770
 -- 113:0eeeeeee0eccccc00ec5c5c00eec8ce00046400000cf6c000044477000202770
 -- 114:0299999909c5c5c009c5c5c009ccccc094d4d00004c4dc00044dd00000101000
 -- 115:0299999909ccccc009c5c5c009cc8cc094d4d00004c4dc00044dd00000101000
--- 116:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7bb7aa7bb447aaa7777aaaaa3aaaa
--- 117:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7dbbb7aa7b4447aaa7777aaaaa3aaaa
--- 118:aaaaaaaaa777777aa7dddd7aa7d7dd7aa7bbbb7aa744447aaa7777aaaaa3aaaa
--- 119:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7bbbb7aa744447aaa7777aaaaa3aaaa
--- 120:aaaaaaaaa777777aa7dddd7aa7d7dd7aa7bbbd7aa7444b7aaa7777aaaaa3aaaa
--- 121:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7bbbd7aa7444b7aaa7777aaaaa3aaaa
--- 122:aaaaaaaaa777777aa7dddd7aa7dddd7aa7b7dd7aa74bbb7aaa7777aaaaa3aaaa
--- 123:aaaaaaaaa777777aa7dddd7aa7dddd7aa7dd7d7aa7bbbb7aaa7777aaaaa3aaaa
--- 124:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7db7aa7bbb47aaa7777aaaaa3aaaa
--- 125:aaaaaaaaa777777aa7dddd7aa7ffff7aa7d7bb7aa7ffff7aaa7777aaaaa3aaaa
+-- 116:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7337aa733337aaa7777aaaaa3aaaa
+-- 117:aaaaaaaaa777777aa7dddd7aa7dd7d7aa7d3367aa733397aaa7777aaaaa3aaaa
+-- 118:aaaaaaaaa777777aa7dddd7aa77ddd7aa736637aa739937aaa7777aaaaa3aaaa
+-- 119:aaaaaaaaa777777aa7d7dd7aa7dddd7aa736637aa739937aaa7777aaaaa3aaaa
+-- 120:aaaaaaaaa777777aa7dd7d7aa7dddd7aa736637aa739937aaa7777aaaaa3aaaa
+-- 121:aaaaaaaaa777777aa7dddd7aa7d7dd7aa7633d7aa793337aaa7777aaaaa3aaaa
+-- 122:aaaaaaaaa777777aa7dddd7aa7dddd7aa737dd7aa733337aaa7777aaaaa3aaaa
+-- 123:aaaaaaaaa777777aa7dddd7aa7dddd7aa7dd7d7aa733337aaa7777aaaaa3aaaa
+-- 124:aaaaaaaaa777777aa7dddd7aa7dddd7aa7d7d37aa733337aaa7777aaaaa3aaaa
+-- 125:aaaaaaaaa777777aa7dddd7aa7ffff7aa7d7337aa7ffff7aaa7777aaaaa3aaaa
 -- 126:aaaaaaaaa777777aa7ffff7aa7ffff7aa7ffff7aa7ffff7aaa7777aaaaa3aaaa
--- 127:aaaaaaaaa777777aa7ffff7aa7dddd7aa7ffff7aa7bb447aaa7777aaaaa3aaaa
+-- 127:aaaaaaaaa777777aa7ffff7aa7dddd7aa7ffff7aa733337aaa7777aaaaa3aaaa
 -- 128:2222222222222222220220222202202222000022220000222200002222000022
 -- 129:0222222022222222220000222200002222000022220000222222222202222220
 -- 130:2200002222200022222200222222202222022222220022222200022222000022
@@ -3985,7 +4010,7 @@ end
 -- </SFX>
 
 -- <FLAGS>
--- 000:00000040404080018010101010101000101010101000101010101010100000000020101010001010101010010000000000000010101010102010101000000000100000000000101000000010101010100010000010001010000000101010101000101010101000000000001010101010000000000100008080000000000000001010101000101010101000000000000010101010101010101000000000000000202011001010101000000000001010000000000000001010000000000010100011000000000000000000000000000000000000000000000000000000000000000000000000001010000000000100001000000000000010100000000000000000
+-- 000:00000040404080018010101010101000101010101000101010101010100000000020101010001010101010010000000000000010101010102010101000000000100000000000101000000010101010100010000010001010000000101010101000101010101000000000001010101010000000000100008080000000000000001010101010101010101000000000000010101010101010101000000000000000202011001010101000000000001010000000000000001010000000000010100011000000000000000000000000000000000000000000000000000000000000000000000000001010000000000100001000000000000010100000000000000000
 -- </FLAGS>
 
 -- <FLAGS2>
