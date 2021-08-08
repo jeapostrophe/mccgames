@@ -3,9 +3,9 @@
 // desc:   A game like Pokemon
 // script: js
 
-const t=0;
-const x=96;
-const y=24;
+var t=0;
+var x=96;
+var y=24;
 
 function TIC() {
 	if (btn(0)) { y-- }
