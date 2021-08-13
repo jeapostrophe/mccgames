@@ -55,7 +55,10 @@ function enter_room(rn,en)
 end
 
 function isItem(x)
- if x == 16 then return true end
+ if x >= 16 and x <= 22 then return true end
+ if x == 35 then return true end
+ if x == 103 then return true end
+ if x == 104 then return true end
  return false
 end
 
@@ -150,6 +153,7 @@ rooms[1]=
 rooms[2]=
  { mx=30
  , my=0
+	, itemTile=2
 	, ent={[1]={ px=30
 	           , py=15 }
 							,[2]={ px=59
@@ -168,6 +172,7 @@ rooms[2]=
 rooms[3]=
  { mx=60
  , my=0
+	, itemTile=37
 	, ent={[1]={ px=60
 	           , py=14 }
 							,[2]={ px=89
@@ -184,6 +189,7 @@ rooms[3]=
 rooms[4]=
  { mx=90
  , my=0
+	, itemTile=37
 	, ent={[1]={ px=90
 	           , py=8 }
 							,[2]={ px=119
@@ -200,6 +206,7 @@ rooms[4]=
 rooms[5]=
  { mx=120
  , my=0
+	, itemTile=10
 	, ent={[1]={ px=120
 	           , py=7 } }
 	, ext={[1]={ x=120
@@ -210,6 +217,7 @@ rooms[5]=
 rooms[9]=
  { mx=0
  , my=17
+	, itemTile=10
 	, ent={[1]={ px=1
 	           , py=17 } }
 	, ext={[1]={ x=1
@@ -226,6 +234,7 @@ rooms[9]=
 rooms[10]=
  { mx=30
  , my=17
+	, itemTile=6
 	, ent={[1]={ px=30
 	           , py=23 }
 							,[2]={ px=59
@@ -242,6 +251,7 @@ rooms[10]=
 rooms[11]=
  { mx=60
  , my=17
+	, itemTile=6
 	, ent={[1]={ px=60
 	           , py=23 }
 							,[2]={ px=89 
@@ -260,6 +270,7 @@ rooms[11]=
 rooms[12]=
  { mx=90
  , my=17
+	, itemTile=10
 	, ent={[1]={ px=90
 	           , py=23 } }
 	, ext={[1]={ x=90
@@ -273,6 +284,7 @@ rooms[12]=
 rooms[13]=
  { mx=120
  , my=17
+	, itemTile=10
 	, ent={[1]={ px=135
 	           , py=31 }
 							
@@ -287,6 +299,7 @@ rooms[13]=
 rooms[14]=
  { mx=150
 	, my=17
+	, itemTile=10
 	, ent={[1]={ px=150
 	           , py=24 } }
 	, ext={[1]={ x=150
